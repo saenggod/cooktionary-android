@@ -11,16 +11,16 @@ lifecycle-runtime-ktx = "2.7.0"
 material = "1.11.0"
 lifecycle-extensions = "2.2.0"
 
-## compose
+# compose
 compose = "1.8.2"
 compose-ui = "1.5.4"
 
-## test
+# test
 junit = "4.13.2"
 junit-ext = "1.1.5"
 junit-espresso = "3.5.1"
 
-## android-library
+# android-library
 datastore = "1.0.0"
 retrofit = "2.9.0"
 gson = "2.10.1"
@@ -58,7 +58,7 @@ junit-ext = { group = "androidx.test.ext", name = "junit", version.ref = "junit-
 junit-espresso = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "junit-espresso" }
 compose-ui-test = { group = "androidx.compose.ui", name = "ui-test-manifest", version.ref = "compose-ui" }
 
-# android-library
+# jetpack-library
 datastore = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "datastore" }
 datastore-core = { group = "androidx.datastore", name = "datastore-preferences-core", version.ref = "datastore" }
 hilt = { group = "com.google.dagger", name = "hilt-android", version.ref = "hilt" }
@@ -87,7 +87,10 @@ kotest = { group = "io.kotest", name = "kotest-runner-junit5", version = "5.8.0"
 # mockK
 mockK = { group = "io.mockk", name = "mockk", version.ref = "mockK" }
 mockK-android = { group = "io.mockk", name = "mockk-android", version.ref = "mockK" }
-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
+
+# kakao
+kakao-user = { group = "com.kakao.sdk", name = "v2-user", version = "2.17.0" }
+
 
 [bundles]
 android = ["core-ktx", "lifecycle-runtime-ktx", "material", "lifecycle-extensions", "coil"]

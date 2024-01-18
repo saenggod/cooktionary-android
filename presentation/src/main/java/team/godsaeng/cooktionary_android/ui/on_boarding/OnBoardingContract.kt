@@ -13,9 +13,17 @@ interface OnBoardingContract : BaseContract<OnBoardingContract.UiState, OnBoardi
         data object OnClickGoogleLogin : UiEvent
 
         data object OnClickSkip : UiEvent
+
+        data class OnSuccessKakaoLogin(val accessToken: String) : UiEvent
+
+        data object OnLoginError : UiEvent
     }
 
     sealed interface UiEffect {
+        data object LoginWithKakaoTalk : UiEffect
 
+        data object LoginWithKakaoAccount : UiEffect
+
+        data object LoginWithGoogle : UiEffect
     }
 }

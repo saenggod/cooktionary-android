@@ -11,7 +11,7 @@ android {
 
     defaultConfig {
         applicationId = "team.godsaeng.cooktionary_android"
-        minSdk = 21
+        minSdk = 23
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
@@ -69,6 +69,9 @@ dependencies {
 
     // datastore
     implementation(libs.bundles.datastore)
+
+    // kakao
+    implementation(libs.kakao.user)
 
     // test
     testImplementation(libs.kotest)
