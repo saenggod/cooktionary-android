@@ -14,5 +14,6 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "cooktionary-android"
-include(":app")
- 
+include(":presentation")
+include(":domain")
+include(":data")
