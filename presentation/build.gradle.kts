@@ -64,9 +64,6 @@ dependencies {
     // ksp
     ksp(libs.ksp.hilt)
 
-    // kakao
-    implementation(libs.kakao.user)
-
     // splash screen
     implementation(libs.splash)
 

@@ -1,3 +1,10 @@
 <resources>
-    <string name="app_name">cooktionary-android</string>
+    <!--    Common-->
+    <string name="app_name">쿡셔너리</string>
+    <string name="skip">건너뛰기</string>
+
+    <!--    OnBoarding-->
+    <string name="login_with_kakao">카카오톡으로 계속하기</string>
+    <string name="login_with_google">구글 아이디로 계속하기</string>
+    <string name="app_desc">빠른 레시피 검색, 쿡셔너리</string>
 </resources>

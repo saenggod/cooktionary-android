@@ -23,7 +23,7 @@ val Typography = Typography(
     ),
     bodyMedium = TextStyle(
         fontFamily = pretendard,
-        fontWeight = FontWeight.Normal,
+        fontWeight = FontWeight.Medium,
         letterSpacing = 0.sp
     ),
     bodySmall = TextStyle(

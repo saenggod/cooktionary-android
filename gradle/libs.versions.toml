@@ -28,9 +28,6 @@ okHttp = "5.0.0-alpha.2"
 coil = "2.5.0"
 hilt = "2.48"
 
-## kakao
-kakao = "2.17.0"
-
 # MockK
 mockK = "1.13.8"
 appcompat = "1.6.1"
@@ -80,9 +77,6 @@ coil = { group = "io.coil-kt", name = "coil-compose", version.ref = "coil" }
 
 # ksp
 ksp-hilt = { group = "com.google.dagger", name = "hilt-compiler", version.ref = "hilt" }
-
-# kakao
-kakao-user = { group = "com.kakao.sdk", name = "v2-user", version.ref = "kakao" }
 
 # splash
 splash = { group = "androidx.core", name = "core-splashscreen", version = "1.0.1" }
