@@ -10,9 +10,11 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import dagger.hilt.android.AndroidEntryPoint
 import team.godsaeng.cooktionary_android.ui.on_boarding.OnBoardingScreen
 import team.godsaeng.cooktionary_android.ui.theme.CooktionaryandroidTheme
 
+@AndroidEntryPoint
 class ContainerActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
