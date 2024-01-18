@@ -23,6 +23,7 @@ junit-espresso = "3.5.1"
 ## android-library
 datastore = "1.0.0"
 retrofit = "2.9.0"
+gson = "2.10.1"
 okHttp = "5.0.0-alpha.2"
 coil = "2.5.0"
 hilt = "2.48"
@@ -32,6 +33,7 @@ kakao = "2.17.0"
 
 # MockK
 mockK = "1.13.8"
+appcompat = "1.6.1"
 
 [libraries]
 # default
@@ -63,6 +65,17 @@ compose-ui-test = { group = "androidx.compose.ui", name = "ui-test-manifest", ve
 datastore = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "datastore" }
 datastore-core = { group = "androidx.datastore", name = "datastore-preferences-core", version.ref = "datastore" }
 hilt = { group = "com.google.dagger", name = "hilt-android", version.ref = "hilt" }
+
+# retrofit
+retrofit = { group = "com.squareup.retrofit2", name = "retrofit", version.ref = "retrofit" }
+retrofit-converter-gson = { group = "com.squareup.retrofit2", name = "converter-gson", version.ref = "retrofit" }
+retrofit-gson = { group = "com.google.code.gson", name = "gson", version.ref = "gson" }
+
+# okHttp3
+okHttp = { group = "com.squareup.okhttp3", name = "okhttp", version.ref = "okHttp" }
+okHttp-logging-interceptor = { group = "com.squareup.okhttp3", name = "logging-interceptor", version.ref = "okHttp" }
+
+# coil
 coil = { group = "io.coil-kt", name = "coil-compose", version.ref = "coil" }
 
 # ksp
@@ -80,12 +93,14 @@ kotest = { group = "io.kotest", name = "kotest-runner-junit5", version = "5.8.0"
 # mockK
 mockK = { group = "io.mockk", name = "mockk", version.ref = "mockK" }
 mockK-android = { group = "io.mockk", name = "mockk-android", version.ref = "mockK" }
+appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
 
 [bundles]
 android = ["core-ktx", "lifecycle-runtime-ktx", "material", "lifecycle-extensions", "coil"]
 compose = ["activity-compose", "compose-lifecycle", "compose-ui", "compose-ui-graphics", "compose-ui-tooling-preview", "compose-material", "compose-material3", "compose-hilt-navigation", "compose-navigation"]
 common = ["hilt"]
 datastore = ["datastore", "datastore-core"]
+retrofit = ["retrofit", "retrofit-converter-gson", "retrofit-gson", "okHttp", "okHttp-logging-interceptor"]
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "android-gradle-plugin" }
