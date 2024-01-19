@@ -13,13 +13,14 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import team.godsaeng.cooktionary_android.ui.on_boarding.OnBoardingContract.UiEffect
+import team.godsaeng.cooktionary_android.ui.on_boarding.OnBoardingContract.UiEffect.LoginWithGoogle
 import team.godsaeng.cooktionary_android.ui.on_boarding.OnBoardingContract.UiEffect.LoginWithKakaoAccount
 import team.godsaeng.cooktionary_android.ui.on_boarding.OnBoardingContract.UiEffect.LoginWithKakaoTalk
 import team.godsaeng.cooktionary_android.ui.on_boarding.OnBoardingContract.UiEvent.OnClickGoogleLogin
 import team.godsaeng.cooktionary_android.ui.on_boarding.OnBoardingContract.UiEvent.OnClickKakaoLogin
 import team.godsaeng.cooktionary_android.ui.on_boarding.OnBoardingContract.UiEvent.OnClickSkip
-import team.godsaeng.cooktionary_android.ui.on_boarding.OnBoardingContract.UiEvent.OnLoginError
-import team.godsaeng.cooktionary_android.ui.on_boarding.OnBoardingContract.UiEvent.OnSuccessKakaoLogin
+import team.godsaeng.cooktionary_android.ui.on_boarding.OnBoardingContract.UiEvent.OnFailureLogin
+import team.godsaeng.cooktionary_android.ui.on_boarding.OnBoardingContract.UiEvent.OnSuccessLogin
 import team.godsaeng.cooktionary_android.ui.on_boarding.OnBoardingContract.UiState
 import javax.inject.Inject
 
@@ -38,9 +39,12 @@ class OnBoardingViewModel @Inject constructor(application: Application) : Androi
 
         is OnClickSkip -> onClickSkip()
 
-        is OnSuccessKakaoLogin -> onSuccessKakaoLogin(event.accessToken)
+        is OnSuccessLogin -> onSuccessLogin(
+            platform = event.platform,
+            token = event.token
+        )
 
-        is OnLoginError -> onLoginError()
+        is OnFailureLogin -> onFailureLogin()
     }
 
     private fun onClickKakaoLogin() {
@@ -56,18 +60,23 @@ class OnBoardingViewModel @Inject constructor(application: Application) : Androi
     }
 
     private fun onClickGoogleLogin() {
-
+        viewModelScope.launch {
+            _uiEffect.emit(LoginWithGoogle)
+        }
     }
 
     private fun onClickSkip() {
 
     }
 
-    private fun onSuccessKakaoLogin(accessToken: String) {
+    private fun onSuccessLogin(
+        platform: String,
+        token: String
+    ) {
 
     }
 
-    private fun onLoginError() {
+    private fun onFailureLogin() {
 
     }
 }

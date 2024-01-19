@@ -14,9 +14,12 @@ interface OnBoardingContract : BaseContract<OnBoardingContract.UiState, OnBoardi
 
         data object OnClickSkip : UiEvent
 
-        data class OnSuccessKakaoLogin(val accessToken: String) : UiEvent
+        data class OnSuccessLogin(
+            val platform: String,
+            val token: String
+        ) : UiEvent
 
-        data object OnLoginError : UiEvent
+        data object OnFailureLogin : UiEvent
     }
 
     sealed interface UiEffect {

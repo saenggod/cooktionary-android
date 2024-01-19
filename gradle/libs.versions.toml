@@ -91,6 +91,11 @@ mockK-android = { group = "io.mockk", name = "mockk-android", version.ref = "moc
 # kakao
 kakao-user = { group = "com.kakao.sdk", name = "v2-user", version = "2.17.0" }
 
+# google
+google-services = { group = "com.google.gms", name = "google-services", version = "4.4.0" }
+firebase-auth = { group = "com.google.firebase", name = "firebase-auth", version = "22.3.0" }
+firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version = "32.7.0" }
+google-auth = { group = "com.google.android.gms", name = "play-services-auth", version = "20.7.0" }
 
 [bundles]
 android = ["core-ktx", "lifecycle-runtime-ktx", "material", "lifecycle-extensions", "coil"]
@@ -98,6 +103,7 @@ compose = ["activity-compose", "compose-lifecycle", "compose-ui", "compose-ui-gr
 common = ["hilt"]
 datastore = ["datastore", "datastore-core"]
 retrofit = ["retrofit", "retrofit-converter-gson", "retrofit-gson", "okHttp", "okHttp-logging-interceptor"]
+google = ["google-services", "firebase-auth", "firebase-bom", "google-auth"]
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "android-gradle-plugin" }
