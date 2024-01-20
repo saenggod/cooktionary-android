@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import team.godsaeng.cooktionary_android.ui.on_boarding.OnBoardingContract.UiEffect
+import team.godsaeng.cooktionary_android.ui.on_boarding.OnBoardingContract.UiEffect.GoToMain
 import team.godsaeng.cooktionary_android.ui.on_boarding.OnBoardingContract.UiEffect.LoginWithGoogle
 import team.godsaeng.cooktionary_android.ui.on_boarding.OnBoardingContract.UiEffect.LoginWithKakao
 import team.godsaeng.cooktionary_android.ui.on_boarding.OnBoardingContract.UiEvent.OnClickGoogleLogin
@@ -60,7 +61,9 @@ class OnBoardingViewModel @Inject constructor(
     }
 
     private fun onClickSkip() {
-
+        viewModelScope.launch {
+            _uiEffect.emit(GoToMain)
+        }
     }
 
     private fun onSuccessLogin(

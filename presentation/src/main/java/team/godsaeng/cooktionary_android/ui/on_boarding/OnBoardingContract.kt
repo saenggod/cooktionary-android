@@ -2,7 +2,7 @@ package team.godsaeng.cooktionary_android.ui.on_boarding
 
 import team.godsaeng.cooktionary_android.ui.base.BaseContract
 
-interface OnBoardingContract : BaseContract<OnBoardingContract.UiState, OnBoardingContract.UiEvent, OnBoardingContract.UiEffect> {
+sealed interface OnBoardingContract : BaseContract<OnBoardingContract.UiState, OnBoardingContract.UiEvent, OnBoardingContract.UiEffect> {
     data class UiState(
         val isLoading: Boolean = false
     )
@@ -26,5 +26,7 @@ interface OnBoardingContract : BaseContract<OnBoardingContract.UiState, OnBoardi
         data object LoginWithKakao : UiEffect
 
         data object LoginWithGoogle : UiEffect
+
+        data object GoToMain : UiEffect
     }
 }
