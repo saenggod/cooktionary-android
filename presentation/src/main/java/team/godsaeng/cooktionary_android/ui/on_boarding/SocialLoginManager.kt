@@ -9,6 +9,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import com.kakao.sdk.auth.model.OAuthToken
 import com.kakao.sdk.user.UserApiClient
 
 class SocialLoginManager(
@@ -25,24 +26,23 @@ class SocialLoginManager(
             .build()
     )
 
-    fun loginWithKakaoTalk() {
-        kakaoLoginInstance.loginWithKakaoTalk(
-            context = context,
-            callback = { token, error ->
-                token?.let { onSuccess(PLATFORM_KAKAO, it.accessToken) }
-                error?.let { onFailure() }
-            }
-        )
-    }
+    fun loginWithKakao() {
+        val loginCallback: (OAuthToken?, Throwable?) -> Unit = { token, error ->
+            token?.let { onSuccess(PLATFORM_KAKAO, it.accessToken) }
+            error?.let { onFailure() }
+        }
 
-    fun loginWithKakaoAccount() {
-        kakaoLoginInstance.loginWithKakaoAccount(
-            context = context,
-            callback = { token, error ->
-                token?.let { onSuccess(PLATFORM_KAKAO, it.accessToken) }
-                error?.let { onFailure() }
-            }
-        )
+        if (kakaoLoginInstance.isKakaoTalkLoginAvailable(context)) {
+            kakaoLoginInstance.loginWithKakaoTalk(
+                context = context,
+                callback = loginCallback
+            )
+        } else {
+            kakaoLoginInstance.loginWithKakaoAccount(
+                context = context,
+                callback = loginCallback
+            )
+        }
     }
 
     @Composable

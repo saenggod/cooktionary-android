@@ -23,9 +23,7 @@ interface OnBoardingContract : BaseContract<OnBoardingContract.UiState, OnBoardi
     }
 
     sealed interface UiEffect {
-        data object LoginWithKakaoTalk : UiEffect
-
-        data object LoginWithKakaoAccount : UiEffect
+        data object LoginWithKakao : UiEffect
 
         data object LoginWithGoogle : UiEffect
     }

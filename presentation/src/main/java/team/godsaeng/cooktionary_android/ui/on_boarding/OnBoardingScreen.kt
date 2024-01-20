@@ -35,8 +35,7 @@ import team.godsaeng.cooktionary_android.ui.StyledText
 import team.godsaeng.cooktionary_android.ui.base.use
 import team.godsaeng.cooktionary_android.ui.getContext
 import team.godsaeng.cooktionary_android.ui.on_boarding.OnBoardingContract.UiEffect.LoginWithGoogle
-import team.godsaeng.cooktionary_android.ui.on_boarding.OnBoardingContract.UiEffect.LoginWithKakaoAccount
-import team.godsaeng.cooktionary_android.ui.on_boarding.OnBoardingContract.UiEffect.LoginWithKakaoTalk
+import team.godsaeng.cooktionary_android.ui.on_boarding.OnBoardingContract.UiEffect.LoginWithKakao
 import team.godsaeng.cooktionary_android.ui.on_boarding.OnBoardingContract.UiEvent
 import team.godsaeng.cooktionary_android.ui.on_boarding.OnBoardingContract.UiEvent.OnClickGoogleLogin
 import team.godsaeng.cooktionary_android.ui.on_boarding.OnBoardingContract.UiEvent.OnClickKakaoLogin
@@ -69,9 +68,7 @@ fun OnBoardingScreen(viewModel: OnBoardingViewModel = hiltViewModel()) {
     LaunchedEffect(uiEffect) {
         uiEffect.collectLatest { uiEffect ->
             when (uiEffect) {
-                is LoginWithKakaoTalk -> socialLoginManager.loginWithKakaoTalk()
-
-                is LoginWithKakaoAccount -> socialLoginManager.loginWithKakaoAccount()
+                is LoginWithKakao -> socialLoginManager.loginWithKakao()
 
                 is LoginWithGoogle -> socialLoginManager.launchGoogleLoginLauncher()
             }

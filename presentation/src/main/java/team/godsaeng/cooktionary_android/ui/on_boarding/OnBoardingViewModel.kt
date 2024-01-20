@@ -1,9 +1,7 @@
 package team.godsaeng.cooktionary_android.ui.on_boarding
 
-import android.app.Application
-import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.kakao.sdk.user.UserApiClient
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -14,18 +12,20 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import team.godsaeng.cooktionary_android.ui.on_boarding.OnBoardingContract.UiEffect
 import team.godsaeng.cooktionary_android.ui.on_boarding.OnBoardingContract.UiEffect.LoginWithGoogle
-import team.godsaeng.cooktionary_android.ui.on_boarding.OnBoardingContract.UiEffect.LoginWithKakaoAccount
-import team.godsaeng.cooktionary_android.ui.on_boarding.OnBoardingContract.UiEffect.LoginWithKakaoTalk
+import team.godsaeng.cooktionary_android.ui.on_boarding.OnBoardingContract.UiEffect.LoginWithKakao
 import team.godsaeng.cooktionary_android.ui.on_boarding.OnBoardingContract.UiEvent.OnClickGoogleLogin
 import team.godsaeng.cooktionary_android.ui.on_boarding.OnBoardingContract.UiEvent.OnClickKakaoLogin
 import team.godsaeng.cooktionary_android.ui.on_boarding.OnBoardingContract.UiEvent.OnClickSkip
 import team.godsaeng.cooktionary_android.ui.on_boarding.OnBoardingContract.UiEvent.OnFailureLogin
 import team.godsaeng.cooktionary_android.ui.on_boarding.OnBoardingContract.UiEvent.OnSuccessLogin
 import team.godsaeng.cooktionary_android.ui.on_boarding.OnBoardingContract.UiState
+import team.godsaeng.domain.model.use_case.VerifyUserUseCase
 import javax.inject.Inject
 
 @HiltViewModel
-class OnBoardingViewModel @Inject constructor(application: Application) : AndroidViewModel(application), OnBoardingContract {
+class OnBoardingViewModel @Inject constructor(
+    private val verifyUserUseCase: VerifyUserUseCase
+) : ViewModel(), OnBoardingContract {
     private val _uiState = MutableStateFlow(UiState())
     override val uiState: StateFlow<UiState> = _uiState.asStateFlow()
 
@@ -49,13 +49,7 @@ class OnBoardingViewModel @Inject constructor(application: Application) : Androi
 
     private fun onClickKakaoLogin() {
         viewModelScope.launch {
-            _uiEffect.emit(
-                if (UserApiClient.instance.isKakaoTalkLoginAvailable(getApplication())) {
-                    LoginWithKakaoTalk
-                } else {
-                    LoginWithKakaoAccount
-                }
-            )
+            _uiEffect.emit(LoginWithKakao)
         }
     }
 
@@ -73,7 +67,12 @@ class OnBoardingViewModel @Inject constructor(application: Application) : Androi
         platform: String,
         token: String
     ) {
-
+        viewModelScope.launch {
+            verifyUserUseCase(
+                platform = platform,
+                token = token
+            )
+        }
     }
 
     private fun onFailureLogin() {
