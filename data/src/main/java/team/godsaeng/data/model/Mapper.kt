@@ -1,4 +1,4 @@
-package team.godsaeng.data.mapper
+package team.godsaeng.data.model
 
 import team.godsaeng.data.base.BaseResponse
 import team.godsaeng.domain.model.base.BaseModel

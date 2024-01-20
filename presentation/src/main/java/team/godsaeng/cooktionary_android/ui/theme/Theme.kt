@@ -17,20 +17,25 @@ import androidx.core.view.WindowCompat
 
 private val DarkColorScheme = darkColorScheme(
     primary = Color.White,
+    onPrimary = Color.White,
     secondary = Color.White,
-    tertiary = Color.White
+    onSecondary = Color.White,
+    tertiary = Color.White,
+    background = Color.White
 )
 
 private val LightColorScheme = lightColorScheme(
     primary = Color.White,
+    onPrimary = Color.White,
     secondary = Color.White,
-    tertiary = Color.White
+    onSecondary = Color.White,
+    tertiary = Color.White,
+    background = Color.White
 )
 
 @Composable
 fun CooktionaryandroidTheme(
     darkTheme: Boolean = false,
-    // Dynamic color is available on Android 12+
     dynamicColor: Boolean = true,
     content: @Composable () -> Unit
 ) {
@@ -43,11 +48,12 @@ fun CooktionaryandroidTheme(
         darkTheme -> DarkColorScheme
         else -> LightColorScheme
     }
+
     val view = LocalView.current
     if (!view.isInEditMode) {
         SideEffect {
             val window = (view.context as Activity).window
-            window.statusBarColor = colorScheme.primary.toArgb()
+            window.statusBarColor = Color.White.toArgb()
             WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = darkTheme
         }
     }

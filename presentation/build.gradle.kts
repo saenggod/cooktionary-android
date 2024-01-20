@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.kotlin.lang)
     alias(libs.plugins.ksp)
     alias(libs.plugins.hilt)
+    id("com.google.gms.google-services")
 }
 
 android {
@@ -11,7 +12,7 @@ android {
 
     defaultConfig {
         applicationId = "team.godsaeng.cooktionary_android"
-        minSdk = 21
+        minSdk = 26
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
@@ -64,14 +65,17 @@ dependencies {
     // ksp
     ksp(libs.ksp.hilt)
 
-    // kakao
-    implementation(libs.kakao.user)
-
     // splash screen
     implementation(libs.splash)
 
     // datastore
     implementation(libs.bundles.datastore)
+
+    // kakao
+    implementation(libs.kakao.user)
+
+    // google
+    implementation(libs.bundles.google)
 
     // test
     testImplementation(libs.kotest)

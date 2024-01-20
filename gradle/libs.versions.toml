@@ -11,25 +11,22 @@ lifecycle-runtime-ktx = "2.7.0"
 material = "1.11.0"
 lifecycle-extensions = "2.2.0"
 
-## compose
+# compose
 compose = "1.8.2"
 compose-ui = "1.5.4"
 
-## test
+# test
 junit = "4.13.2"
 junit-ext = "1.1.5"
 junit-espresso = "3.5.1"
 
-## android-library
+# android-library
 datastore = "1.0.0"
 retrofit = "2.9.0"
 gson = "2.10.1"
 okHttp = "5.0.0-alpha.2"
 coil = "2.5.0"
 hilt = "2.48"
-
-## kakao
-kakao = "2.17.0"
 
 # MockK
 mockK = "1.13.8"
@@ -61,7 +58,7 @@ junit-ext = { group = "androidx.test.ext", name = "junit", version.ref = "junit-
 junit-espresso = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "junit-espresso" }
 compose-ui-test = { group = "androidx.compose.ui", name = "ui-test-manifest", version.ref = "compose-ui" }
 
-# android-library
+# jetpack-library
 datastore = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "datastore" }
 datastore-core = { group = "androidx.datastore", name = "datastore-preferences-core", version.ref = "datastore" }
 hilt = { group = "com.google.dagger", name = "hilt-android", version.ref = "hilt" }
@@ -81,9 +78,6 @@ coil = { group = "io.coil-kt", name = "coil-compose", version.ref = "coil" }
 # ksp
 ksp-hilt = { group = "com.google.dagger", name = "hilt-compiler", version.ref = "hilt" }
 
-# kakao
-kakao-user = { group = "com.kakao.sdk", name = "v2-user", version.ref = "kakao" }
-
 # splash
 splash = { group = "androidx.core", name = "core-splashscreen", version = "1.0.1" }
 
@@ -93,7 +87,15 @@ kotest = { group = "io.kotest", name = "kotest-runner-junit5", version = "5.8.0"
 # mockK
 mockK = { group = "io.mockk", name = "mockk", version.ref = "mockK" }
 mockK-android = { group = "io.mockk", name = "mockk-android", version.ref = "mockK" }
-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
+
+# kakao
+kakao-user = { group = "com.kakao.sdk", name = "v2-user", version = "2.17.0" }
+
+# google
+google-services = { group = "com.google.gms", name = "google-services", version = "4.4.0" }
+firebase-auth = { group = "com.google.firebase", name = "firebase-auth", version = "22.3.0" }
+firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version = "32.7.0" }
+google-auth = { group = "com.google.android.gms", name = "play-services-auth", version = "20.7.0" }
 
 [bundles]
 android = ["core-ktx", "lifecycle-runtime-ktx", "material", "lifecycle-extensions", "coil"]
@@ -101,6 +103,7 @@ compose = ["activity-compose", "compose-lifecycle", "compose-ui", "compose-ui-gr
 common = ["hilt"]
 datastore = ["datastore", "datastore-core"]
 retrofit = ["retrofit", "retrofit-converter-gson", "retrofit-gson", "okHttp", "okHttp-logging-interceptor"]
+google = ["google-services", "firebase-auth", "firebase-bom", "google-auth"]
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "android-gradle-plugin" }

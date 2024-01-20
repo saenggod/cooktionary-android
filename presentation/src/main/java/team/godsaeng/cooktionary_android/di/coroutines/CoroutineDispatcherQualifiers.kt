@@ -1,4 +1,4 @@
-package team.godsaeng.cooktionary_android.di
+package team.godsaeng.cooktionary_android.di.coroutines
 
 import javax.inject.Qualifier
 
