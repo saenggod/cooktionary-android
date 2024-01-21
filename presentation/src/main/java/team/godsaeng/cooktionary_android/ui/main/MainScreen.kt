@@ -56,7 +56,6 @@ import team.godsaeng.cooktionary_android.ui.StyledText
 import team.godsaeng.cooktionary_android.ui.TopBar
 import team.godsaeng.cooktionary_android.ui.alpha
 import team.godsaeng.cooktionary_android.ui.base.use
-import team.godsaeng.cooktionary_android.ui.branchedModifier
 import team.godsaeng.cooktionary_android.ui.clickableWithoutRipple
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnDrag
@@ -223,9 +222,11 @@ private fun ColumnScope.ButtonSection(
 ) {
     Column(
         modifier = Modifier
+            .clip(shape = RoundedCornerShape(12.dp))
             .padding(horizontal = 16.dp)
             .fillMaxWidth()
             .weight(3f)
+            .background(color = Grey0.alpha(60))
     ) {
         FunctionButtonRow()
 
@@ -314,58 +315,47 @@ private fun LazyGridItemScope.IngredientButton(
     var y by remember { mutableFloatStateOf(0f) }
 
     Box(
-        modifier = branchedModifier(
-            value = !ingredient.contains("null"),
-            onDefault = {
-                Modifier
-                    .clip(shape = RoundedCornerShape(12.dp))
-                    .width(0.dp)
-                    .aspectRatio(1f)
-                    .animateItemPlacement()
-            },
-            onTrue = { modifier ->
-                modifier
-                    .background(color = Grey0)
-                    .clickableWithoutRipple {
-                        // todo : onClick
-                    }
-                    .pointerInput(Unit) {
-                        detectDragGesturesAfterLongPress(
-                            onDragStart = { start ->
-                                uiEvent(
-                                    OnDragStart(
-                                        ingredient = ingredient,
-                                        startingXPosition = x + start.x,
-                                        startingYPosition = y + start.y
-                                    )
-                                )
-                            },
-                            onDragEnd = {
-                                uiEvent(OnDragStop)
-                            },
-                            onDrag = { _, amount ->
-                                uiEvent(
-                                    OnDrag(
-                                        draggedXOffset = amount.x,
-                                        draggedYOffset = amount.y
-                                    )
-                                )
-                            }
+        modifier = Modifier
+            .clip(shape = RoundedCornerShape(12.dp))
+            .width(0.dp)
+            .aspectRatio(1f)
+            .animateItemPlacement()
+            .background(color = Grey0)
+            .clickableWithoutRipple {
+                // todo : onClick
+            }
+            .pointerInput(Unit) {
+                detectDragGesturesAfterLongPress(
+                    onDragStart = { start ->
+                        uiEvent(
+                            OnDragStart(
+                                ingredient = ingredient,
+                                startingXPosition = x + start.x,
+                                startingYPosition = y + start.y
+                            )
+                        )
+                    },
+                    onDragEnd = {
+                        uiEvent(OnDragStop)
+                    },
+                    onDrag = { _, amount ->
+                        uiEvent(
+                            OnDrag(
+                                draggedXOffset = amount.x,
+                                draggedYOffset = amount.y
+                            )
                         )
                     }
-                    .onGloballyPositioned {
-                        x = it.positionInRoot().x
-                        y = it.positionInRoot().y
-
-                        if (ingredientButtonSize == 0) {
-                            uiEvent(OnIngredientButtonMeasured(it.size.width))
-                        }
-                    }
-            },
-            onFalse = { modifier ->
-                modifier.background(color = Grey0.alpha(60))
+                )
             }
-        )
+            .onGloballyPositioned {
+                x = it.positionInRoot().x
+                y = it.positionInRoot().y
+
+                if (ingredientButtonSize == 0) {
+                    uiEvent(OnIngredientButtonMeasured(it.size.width))
+                }
+            }
     ) {
         Column(modifier = Modifier.align(Center)) {
             StyledText(

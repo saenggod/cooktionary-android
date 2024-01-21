@@ -8,7 +8,7 @@ sealed interface MainContract : BaseContract<MainContract.UiState, MainContract.
 
         val ingredientDisplayList: List<String> = listOf("1", "2", "3"),
 
-        val ingredientButtonList: List<String> = listOf("a", "b", "c", "d", "e", "f", "g", "h", "i", "null1", "null2", "null3", "null4", "null5"),
+        val ingredientButtonList: List<String> = listOf("a", "b", "c", "d", "e", "f", "g", "h", "i"),
 
         val isDragging: Boolean = false,
         val isDeletable: Boolean = false,
