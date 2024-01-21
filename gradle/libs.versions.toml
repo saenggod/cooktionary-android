@@ -51,6 +51,7 @@ compose-material = { group = "androidx.compose.material", name = "material", ver
 compose-material3 = { group = "androidx.compose.material3", name = "material3", version = "1.1.2" }
 compose-navigation = { group = "androidx.navigation", name = "navigation-compose", version = "2.7.6" }
 compose-hilt-navigation = { group = "androidx.hilt", name = "hilt-navigation-compose", version = "1.1.0" }
+compose-reorder = { group = "org.burnoutcrew.composereorderable", name = "reorderable", version = "0.9.6" }
 
 # test
 junit = { group = "junit", name = "junit", version.ref = "junit" }

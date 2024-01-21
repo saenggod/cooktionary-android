@@ -4,7 +4,6 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
 import androidx.compose.foundation.layout.Arrangement.spacedBy
 import androidx.compose.foundation.layout.Box
@@ -14,7 +13,6 @@ import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.absoluteOffset
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -40,10 +38,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment.Companion.BottomCenter
 import androidx.compose.ui.Alignment.Companion.Center
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.input.pointer.pointerInteropFilter
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.res.painterResource
@@ -51,24 +51,25 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import kotlinx.coroutines.flow.collectLatest
+import org.burnoutcrew.reorderable.ReorderableItem
+import org.burnoutcrew.reorderable.detectReorderAfterLongPress
+import org.burnoutcrew.reorderable.rememberReorderableLazyGridState
+import org.burnoutcrew.reorderable.reorderable
 import team.godsaeng.cooktionary_android.R
 import team.godsaeng.cooktionary_android.ui.StyledText
 import team.godsaeng.cooktionary_android.ui.TopBar
 import team.godsaeng.cooktionary_android.ui.alpha
 import team.godsaeng.cooktionary_android.ui.base.use
+import team.godsaeng.cooktionary_android.ui.branchedModifier
 import team.godsaeng.cooktionary_android.ui.clickableWithoutRipple
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnDrag
-import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnDragStart
-import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnDragStop
-import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnIngredientButtonMeasured
+import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnDragEnd
+import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnOrderChanged
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnTrashCanMeasured
-import team.godsaeng.cooktionary_android.ui.pxToDp
-import team.godsaeng.cooktionary_android.ui.theme.DraggingGrey
 import team.godsaeng.cooktionary_android.ui.theme.Grey0
 import team.godsaeng.cooktionary_android.ui.theme.PointColor
 import team.godsaeng.cooktionary_android.ui.theme.SubColor
-import team.godsaeng.cooktionary_android.ui.theme.TextColor
 import team.godsaeng.cooktionary_android.ui.theme.Typography
 
 @Composable
@@ -98,26 +99,15 @@ fun MainScreen(
 
             ButtonSection(
                 ingredientButtonList = uiState.ingredientButtonList,
-                ingredientButtonSize = uiState.ingredientButtonSize,
                 uiEvent = uiEvent
             )
         }
 
         if (uiState.isDragging) {
             TrashCan(
-                trashCanSize = uiState.ingredientButtonSize,
                 isDeletable = uiState.isDeletable,
                 uiEvent = uiEvent
             )
-
-            uiState.draggingIngredient?.let { draggingIngredient ->
-                DraggedIngredientButton(
-                    ingredient = draggingIngredient,
-                    ingredientButtonSize = uiState.ingredientButtonSize,
-                    xPosition = uiState.draggedXPosition,
-                    yPosition = uiState.draggedYPosition
-                )
-            }
         }
     }
 }
@@ -151,7 +141,7 @@ private fun ColumnScope.DisplaySection(
             state = lazyRowState,
             horizontalArrangement = spacedBy(20.dp),
             contentPadding = PaddingValues(horizontal = 100.dp),
-            flingBehavior = rememberSnapFlingBehavior(lazyListState = lazyRowState)
+            flingBehavior = rememberSnapFlingBehavior(lazyRowState)
         ) {
 //            testList.forEachIndexed { index, s ->
 //                if (index % 2 == 0) {
@@ -217,7 +207,6 @@ private fun IngredientDisplay() {
 @Composable
 private fun ColumnScope.ButtonSection(
     ingredientButtonList: List<String>,
-    ingredientButtonSize: Int,
     uiEvent: (UiEvent) -> Unit
 ) {
     Column(
@@ -232,7 +221,6 @@ private fun ColumnScope.ButtonSection(
 
         IngredientsButtonSection(
             ingredientButtonList = ingredientButtonList,
-            ingredientButtonSize = ingredientButtonSize,
             uiEvent = uiEvent
         )
     }
@@ -263,7 +251,7 @@ private fun FunctionButtonRow() {
 
         Box(
             modifier = Modifier
-                .weight(3f)
+                .weight(2f)
                 .clip(shape = RoundedCornerShape(12.dp))
                 .fillMaxHeight()
                 .background(color = PointColor)
@@ -280,82 +268,88 @@ private fun FunctionButtonRow() {
 }
 
 @Composable
-private fun IngredientsButtonSection(
+private fun ColumnScope.IngredientsButtonSection(
     ingredientButtonList: List<String>,
-    ingredientButtonSize: Int,
     uiEvent: (UiEvent) -> Unit
 ) {
-    LazyVerticalGrid(
-        columns = GridCells.Fixed(4),
-        contentPadding = PaddingValues(top = 4.dp),
-        horizontalArrangement = spacedBy(2.dp),
-        verticalArrangement = spacedBy(2.dp)
-    ) {
-        items(
-            ingredientButtonList,
-            key = { it }
-        ) {
-            IngredientButton(
-                ingredient = it,
-                ingredientButtonSize = ingredientButtonSize,
-                uiEvent = uiEvent
+    val reorderableLazyGridState = rememberReorderableLazyGridState(
+        onMove = { from, to ->
+            uiEvent(
+                OnOrderChanged(
+                    from = from,
+                    to = to
+                )
             )
+        },
+        onDragEnd = { _, to ->
+            uiEvent(OnDragEnd(to))
+        }
+    )
+
+    Box(modifier = Modifier.weight(1f)) {
+        LazyVerticalGrid(
+            modifier = Modifier
+                .reorderable(reorderableLazyGridState)
+                .detectReorderAfterLongPress(reorderableLazyGridState),
+            state = reorderableLazyGridState.gridState,
+            columns = GridCells.Fixed(4),
+            contentPadding = PaddingValues(top = 4.dp),
+            horizontalArrangement = spacedBy(2.dp),
+            verticalArrangement = spacedBy(2.dp)
+        ) {
+            items(
+                items = ingredientButtonList,
+                key = { it }
+            ) { item ->
+                ReorderableItem(
+                    reorderableState = reorderableLazyGridState,
+                    key = item
+                ) { isDragging ->
+                    IngredientButton(
+                        ingredient = item,
+                        isDragging = isDragging,
+                        uiEvent = uiEvent
+                    )
+                }
+            }
         }
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
+@OptIn(ExperimentalFoundationApi::class, ExperimentalComposeUiApi::class)
 @Composable
 private fun LazyGridItemScope.IngredientButton(
     ingredient: String,
-    ingredientButtonSize: Int,
+    isDragging: Boolean,
     uiEvent: (UiEvent) -> Unit
 ) {
-    var x by remember { mutableFloatStateOf(0f) }
-    var y by remember { mutableFloatStateOf(0f) }
+    var startingXPosition by remember { mutableFloatStateOf(0f) }
+    var startingYPosition by remember { mutableFloatStateOf(0f) }
 
     Box(
-        modifier = Modifier
-            .clip(shape = RoundedCornerShape(12.dp))
-            .width(0.dp)
-            .aspectRatio(1f)
-            .animateItemPlacement()
-            .background(color = Grey0)
-            .clickableWithoutRipple {
-                // todo : onClick
-            }
-            .pointerInput(Unit) {
-                detectDragGesturesAfterLongPress(
-                    onDragStart = { start ->
-                        uiEvent(
-                            OnDragStart(
-                                ingredient = ingredient,
-                                startingXPosition = x + start.x,
-                                startingYPosition = y + start.y
-                            )
-                        )
-                    },
-                    onDragEnd = {
-                        uiEvent(OnDragStop)
-                    },
-                    onDrag = { _, amount ->
-                        uiEvent(
-                            OnDrag(
-                                draggedXOffset = amount.x,
-                                draggedYOffset = amount.y
-                            )
-                        )
+        modifier = branchedModifier(
+            condition = isDragging,
+            onDefault = {
+                Modifier
+                    .clip(shape = RoundedCornerShape(12.dp))
+                    .aspectRatio(1f)
+                    .animateItemPlacement()
+                    .background(color = Grey0)
+                    .clickableWithoutRipple {
+                        // todo : onClick
                     }
-                )
-            }
-            .onGloballyPositioned {
-                x = it.positionInRoot().x
-                y = it.positionInRoot().y
-
-                if (ingredientButtonSize == 0) {
-                    uiEvent(OnIngredientButtonMeasured(it.size.width))
+                    .pointerInteropFilter {
+                        startingXPosition = it.x
+                        startingYPosition = it.y
+                        false
+                    }
+            },
+            onTrue = { modifier ->
+                modifier.onGloballyPositioned {
+                    uiEvent(OnDrag(it.positionInRoot() + Offset(startingXPosition, startingYPosition)))
                 }
-            }
+            },
+        )
     ) {
         Column(modifier = Modifier.align(Center)) {
             StyledText(
@@ -368,36 +362,7 @@ private fun LazyGridItemScope.IngredientButton(
 }
 
 @Composable
-private fun DraggedIngredientButton(
-    ingredient: String,
-    ingredientButtonSize: Int,
-    xPosition: Float,
-    yPosition: Float
-) {
-    Box(
-        modifier = Modifier
-            .size(pxToDp(ingredientButtonSize.toFloat()))
-            .absoluteOffset(
-                x = pxToDp(xPosition),
-                y = pxToDp(yPosition)
-            )
-            .clip(shape = RoundedCornerShape(12.dp))
-            .background(color = DraggingGrey.alpha(50))
-    ) {
-        Column(modifier = Modifier.align(Center)) {
-            StyledText(
-                text = ingredient,
-                style = Typography.bodyMedium,
-                fontSize = 13,
-                color = TextColor
-            )
-        }
-    }
-}
-
-@Composable
 private fun BoxScope.TrashCan(
-    trashCanSize: Int,
     isDeletable: Boolean,
     uiEvent: (UiEvent) -> Unit
 ) {
@@ -406,13 +371,13 @@ private fun BoxScope.TrashCan(
             .align(BottomCenter)
             .padding(bottom = 24.dp)
             .clip(shape = RoundedCornerShape(12.dp))
-            .size(pxToDp(trashCanSize.toFloat()))
+            .size(48.dp)
             .background(color = Color.Red.alpha(if (isDeletable) 100 else 50))
             .onGloballyPositioned {
                 uiEvent(
                     OnTrashCanMeasured(
-                        xPosition = it.positionInRoot().x,
-                        yPosition = it.positionInRoot().y
+                        trashCanSize = it.size.width,
+                        trashCanPosition = it.positionInRoot()
                     )
                 )
             }
