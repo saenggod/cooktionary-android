@@ -5,7 +5,7 @@ import androidx.compose.ui.graphics.Color
 val PointColor = Color(0xFFFF5B29)
 val SubColor = Color(0xFF27262E)
 val ButtonBorderColor = Color(0xFF000000).copy(alpha = 0.03f)
-val IngredientButtonColor = Color(0xFFF3F5F9)
+val Grey0 = Color(0xFFF3F5F9)
 val ProgressBackgroundColor = Color(0xFFF3F5F9)
 val DraggingGrey = Color(0xFFAAAAAA)
 val TextColor = Color(0xFF27262E)

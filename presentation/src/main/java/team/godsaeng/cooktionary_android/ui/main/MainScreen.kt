@@ -1,9 +1,12 @@
 package team.godsaeng.cooktionary_android.ui.main
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
-import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
+import androidx.compose.foundation.layout.Arrangement.spacedBy
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
@@ -20,10 +23,14 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyGridItemScope
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -59,7 +66,7 @@ import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnIngredie
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnTrashCanMeasured
 import team.godsaeng.cooktionary_android.ui.pxToDp
 import team.godsaeng.cooktionary_android.ui.theme.DraggingGrey
-import team.godsaeng.cooktionary_android.ui.theme.IngredientButtonColor
+import team.godsaeng.cooktionary_android.ui.theme.Grey0
 import team.godsaeng.cooktionary_android.ui.theme.PointColor
 import team.godsaeng.cooktionary_android.ui.theme.SubColor
 import team.godsaeng.cooktionary_android.ui.theme.TextColor
@@ -88,15 +95,22 @@ fun MainScreen(
         Column(modifier = Modifier.fillMaxSize()) {
             TopSection()
 
-            DisplaySection()
+            DisplaySection(uiEvent)
 
             ButtonSection(
+                ingredientButtonList = uiState.ingredientButtonList,
                 ingredientButtonSize = uiState.ingredientButtonSize,
                 uiEvent = uiEvent
             )
         }
 
         if (uiState.isDragging) {
+            TrashCan(
+                trashCanSize = uiState.ingredientButtonSize,
+                isDeletable = uiState.isDeletable,
+                uiEvent = uiEvent
+            )
+
             uiState.draggingIngredient?.let { draggingIngredient ->
                 DraggedIngredientButton(
                     ingredient = draggingIngredient,
@@ -105,12 +119,6 @@ fun MainScreen(
                     yPosition = uiState.draggedYPosition
                 )
             }
-
-            TrashCan(
-                trashCanSize = uiState.ingredientButtonSize,
-                isDeletable = uiState.isDeletable,
-                uiEvent = uiEvent
-            )
         }
     }
 }
@@ -125,19 +133,91 @@ private fun TopSection() {
     )
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun ColumnScope.DisplaySection() {
+private fun ColumnScope.DisplaySection(
+    uiEvent: (UiEvent) -> Unit
+) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .weight(2f)
     ) {
+        val lazyRowState = rememberLazyListState()
 
+        LazyRow(
+            modifier = Modifier
+                .align(Center)
+                .fillMaxWidth(),
+            state = lazyRowState,
+            horizontalArrangement = spacedBy(20.dp),
+            contentPadding = PaddingValues(horizontal = 100.dp),
+            flingBehavior = rememberSnapFlingBehavior(lazyListState = lazyRowState)
+        ) {
+//            testList.forEachIndexed { index, s ->
+//                if (index % 2 == 0) {
+//                    item {
+//                        IngredientDisplay()
+//                    }
+//                } else {
+//                    item {
+//                        Row(verticalAlignment = CenterVertically) {
+//                            Icon(
+//                                modifier = Modifier.size(20.dp),
+//                                painter = painterResource(id = R.drawable.ic_plus),
+//                                tint = SubColor,
+//                                contentDescription = null
+//                            )
+//
+//                            Spacer(modifier = Modifier.width(20.dp))
+//
+//                            IngredientDisplay()
+//
+//                            Spacer(modifier = Modifier.width(20.dp))
+//
+//                            if (index == testList.lastIndex) {
+//                                Spacer(modifier = Modifier.width(40.dp))
+//                            } else {
+//                                Icon(
+//                                    modifier = Modifier.size(20.dp),
+//                                    painter = painterResource(id = R.drawable.ic_plus),
+//                                    tint = SubColor,
+//                                    contentDescription = null
+//                                )
+//                            }
+//                        }
+//                    }
+//                }
+//            }
+        }
+    }
+}
+
+@Composable
+private fun IngredientDisplay() {
+    Box(
+        modifier = Modifier
+            .clip(shape = RoundedCornerShape(22.dp))
+            .size(106.dp)
+            .border(
+                width = (1.15).dp,
+                color = Color.Black.alpha(3),
+                shape = RoundedCornerShape(22.dp)
+            )
+            .background(color = Grey0)
+    ) {
+        Icon(
+            modifier = Modifier.align(Center),
+            painter = painterResource(id = R.drawable.ic_plus),
+            tint = SubColor,
+            contentDescription = null
+        )
     }
 }
 
 @Composable
 private fun ColumnScope.ButtonSection(
+    ingredientButtonList: List<String>,
     ingredientButtonSize: Int,
     uiEvent: (UiEvent) -> Unit
 ) {
@@ -150,6 +230,7 @@ private fun ColumnScope.ButtonSection(
         FunctionButtonRow()
 
         IngredientsButtonSection(
+            ingredientButtonList = ingredientButtonList,
             ingredientButtonSize = ingredientButtonSize,
             uiEvent = uiEvent
         )
@@ -199,17 +280,18 @@ private fun FunctionButtonRow() {
 
 @Composable
 private fun IngredientsButtonSection(
+    ingredientButtonList: List<String>,
     ingredientButtonSize: Int,
     uiEvent: (UiEvent) -> Unit
 ) {
     LazyVerticalGrid(
         columns = GridCells.Fixed(4),
         contentPadding = PaddingValues(top = 4.dp),
-        horizontalArrangement = Arrangement.spacedBy(2.dp),
-        verticalArrangement = Arrangement.spacedBy(2.dp)
+        horizontalArrangement = spacedBy(2.dp),
+        verticalArrangement = spacedBy(2.dp)
     ) {
         items(
-            listOf("a", "b", "c", "d", "e", "f", "g", "h", "i", "null1", "null2", "null3", "null4", "null5"),
+            ingredientButtonList,
             key = { it }
         ) {
             IngredientButton(
@@ -221,8 +303,9 @@ private fun IngredientsButtonSection(
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun IngredientButton(
+private fun LazyGridItemScope.IngredientButton(
     ingredient: String,
     ingredientButtonSize: Int,
     uiEvent: (UiEvent) -> Unit
@@ -238,10 +321,11 @@ private fun IngredientButton(
                     .clip(shape = RoundedCornerShape(12.dp))
                     .width(0.dp)
                     .aspectRatio(1f)
+                    .animateItemPlacement()
             },
             onTrue = { modifier ->
                 modifier
-                    .background(color = IngredientButtonColor)
+                    .background(color = Grey0)
                     .clickableWithoutRipple {
                         // todo : onClick
                     }
@@ -279,7 +363,7 @@ private fun IngredientButton(
                     }
             },
             onFalse = { modifier ->
-                modifier.background(color = IngredientButtonColor.alpha(60))
+                modifier.background(color = Grey0.alpha(60))
             }
         )
     ) {

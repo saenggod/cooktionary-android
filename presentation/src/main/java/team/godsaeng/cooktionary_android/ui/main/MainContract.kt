@@ -6,6 +6,10 @@ sealed interface MainContract : BaseContract<MainContract.UiState, MainContract.
     data class UiState(
         val isLoading: Boolean = false,
 
+        val ingredientDisplayList: List<String> = listOf("1", "2", "3"),
+
+        val ingredientButtonList: List<String> = listOf("a", "b", "c", "d", "e", "f", "g", "h", "i", "null1", "null2", "null3", "null4", "null5"),
+
         val isDragging: Boolean = false,
         val isDeletable: Boolean = false,
         val draggingIngredient: String? = null,

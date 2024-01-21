@@ -68,6 +68,11 @@ class MainViewModel @Inject constructor() : ViewModel(), MainContract {
             it.copy(
                 isDragging = false,
                 isDeletable = false,
+                ingredientButtonList = if (it.isDeletable) {
+                    it.ingredientButtonList.toMutableList().apply { remove(it.draggingIngredient) }
+                } else {
+                    it.ingredientButtonList
+                },
                 draggingIngredient = null,
                 draggedXPosition = 0f,
                 draggedYPosition = 0f
