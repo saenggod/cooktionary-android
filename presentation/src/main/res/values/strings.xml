@@ -9,5 +9,7 @@
     <string name="app_desc">빠른 레시피 검색, 쿡셔너리</string>
 
     <!--    Main-->
+    <string name="added_ingredient_count">%d개의 재료</string>
     <string name="search_recipe">레시피 검색</string>
+    <string name="no_ingredient_desc">더하기 버튼을 통해\n내가 가지고 있는 재료들을 추가해보세요</string>
 </resources>

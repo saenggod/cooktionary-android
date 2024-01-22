@@ -7,8 +7,10 @@ import team.godsaeng.cooktionary_android.ui.base.BaseContract
 sealed interface MainContract : BaseContract<MainContract.UiState, MainContract.UiEvent, MainContract.UiEffect> {
     data class UiState(
         val isLoading: Boolean = false,
-        val ingredientDisplayList: List<String> = listOf("1", "2", "3"),
-        val ingredientButtonList: List<String> = listOf("a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "1", "2", "3", "4", "5", "6", "7", "8"),
+        val addedIngredientCount: Int = 0,
+        val typedIngredient: String = "",
+        val ingredientDisplayList: List<String?> = listOf(null),
+        val ingredientButtonList: List<String> = emptyList(),
         val isDragging: Boolean = false,
         val isDeletable: Boolean = false,
         val draggingPosition: Offset = Offset(0f, 0f),
@@ -17,9 +19,13 @@ sealed interface MainContract : BaseContract<MainContract.UiState, MainContract.
     )
 
     sealed interface UiEvent {
-        data class OnDrag(val offset: Offset) : UiEvent
+        data class OnIngredientTyped(val typedString: String) : UiEvent
 
-        data class OnDragEnd(val deletableItemIndex: Int) : UiEvent
+        data object OnTypingIngredientEnded : UiEvent
+
+        data class OnDragged(val offset: Offset) : UiEvent
+
+        data class OnDraggingEnded(val deletableItemIndex: Int) : UiEvent
 
         data class OnOrderChanged(
             val from: ItemPosition,
@@ -30,6 +36,8 @@ sealed interface MainContract : BaseContract<MainContract.UiState, MainContract.
             val trashCanSize: Int,
             val trashCanPosition: Offset
         ) : UiEvent
+
+        data object OnClickAddIngredientButton : UiEvent
     }
 
     sealed interface UiEffect {

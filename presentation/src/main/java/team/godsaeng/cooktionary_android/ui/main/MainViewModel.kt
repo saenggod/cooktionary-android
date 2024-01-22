@@ -12,10 +12,13 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import org.burnoutcrew.reorderable.ItemPosition
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEffect
-import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnDrag
-import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnDragEnd
+import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnClickAddIngredientButton
+import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnDragged
+import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnDraggingEnded
+import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnIngredientTyped
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnOrderChanged
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnTrashCanMeasured
+import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnTypingIngredientEnded
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiState
 import javax.inject.Inject
 
@@ -28,9 +31,13 @@ class MainViewModel @Inject constructor() : ViewModel(), MainContract {
     override val uiEffect: SharedFlow<UiEffect> = _uiEffect.asSharedFlow()
 
     override fun uiEvent(event: MainContract.UiEvent) = when (event) {
-        is OnDrag -> onDrag(event.offset)
+        is OnIngredientTyped -> onIngredientTyped(event.typedString)
 
-        is OnDragEnd -> onDragEnd(event.deletableItemIndex)
+        is OnTypingIngredientEnded -> onTypingIngredientEnded()
+
+        is OnDragged -> onDragged(event.offset)
+
+        is OnDraggingEnded -> onDraggingEnded(event.deletableItemIndex)
 
         is OnOrderChanged -> onOrderChanged(
             from = event.from,
@@ -41,9 +48,21 @@ class MainViewModel @Inject constructor() : ViewModel(), MainContract {
             event.trashCanSize,
             event.trashCanPosition
         )
+
+        is OnClickAddIngredientButton -> onClickAddIngredientButton()
     }
 
-    private fun onDrag(offset: Offset) {
+    private fun onIngredientTyped(typedString: String) {
+        _uiState.update {
+            it.copy(typedIngredient = typedString)
+        }
+    }
+
+    private fun onTypingIngredientEnded() {
+        // todo : search Ingredient
+    }
+
+    private fun onDragged(offset: Offset) {
         _uiState.update {
             it.copy(
                 draggingPosition = offset,
@@ -63,7 +82,7 @@ class MainViewModel @Inject constructor() : ViewModel(), MainContract {
         }
     }
 
-    private fun onDragEnd(deletableItemIndex: Int) {
+    private fun onDraggingEnded(deletableItemIndex: Int) {
         if (uiState.value.isDeletable) {
             _uiState.update {
                 it.copy(
@@ -102,5 +121,9 @@ class MainViewModel @Inject constructor() : ViewModel(), MainContract {
                 trashCanPosition = trashCanPosition
             )
         }
+    }
+
+    private fun onClickAddIngredientButton() {
+
     }
 }
