@@ -5,6 +5,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Arrangement.spacedBy
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
@@ -21,6 +22,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyItemScope
+import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyGridItemScope
@@ -35,14 +39,17 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.BottomCenter
 import androidx.compose.ui.Alignment.Companion.Center
 import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.onFocusEvent
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInteropFilter
@@ -69,8 +76,11 @@ import team.godsaeng.cooktionary_android.ui.alpha
 import team.godsaeng.cooktionary_android.ui.base.use
 import team.godsaeng.cooktionary_android.ui.branchedModifier
 import team.godsaeng.cooktionary_android.ui.clickableWithoutRipple
+import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEffect.ScrollToEndOfDisplayList
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnClickAddIngredientButton
+import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnClickAddIngredientDisplay
+import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnClickRemoveIngredientDisplay
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnDragged
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnDraggingEnded
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnIngredientTyped
@@ -90,11 +100,12 @@ fun MainScreen(
     viewModel: MainViewModel = hiltViewModel()
 ) {
     val (uiState, uiEvent, uiEffect) = use(viewModel)
+    val displayListState = rememberLazyListState()
 
     LaunchedEffect(uiEffect) {
         uiEffect.collectLatest { uiEffect ->
             when (uiEffect) {
-                else -> Unit
+                is ScrollToEndOfDisplayList -> displayListState.animateScrollToItem(uiEffect.targetIndex)
             }
         }
     }
@@ -108,6 +119,7 @@ fun MainScreen(
             TopSection(uiState.addedIngredientCount)
 
             DisplaySection(
+                displayListState = displayListState,
                 ingredientDisplayList = uiState.ingredientDisplayList,
                 typedIngredient = uiState.typedIngredient,
                 uiEvent = uiEvent,
@@ -121,7 +133,7 @@ fun MainScreen(
 
         if (uiState.isDragging) {
             TrashCan(
-                isDeletable = uiState.isDeletable,
+                isRemovable = uiState.isRemovable,
                 uiEvent = uiEvent
             )
         }
@@ -151,7 +163,6 @@ private fun TopSection(
                     fontSize = 12
                 )
             }
-
         }
     )
 }
@@ -161,6 +172,7 @@ const val IngredientDisplaySize = 106
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun ColumnScope.DisplaySection(
+    displayListState: LazyListState,
     ingredientDisplayList: List<String?>,
     typedIngredient: String,
     uiEvent: (UiEvent) -> Unit
@@ -172,23 +184,30 @@ private fun ColumnScope.DisplaySection(
             .fillMaxWidth()
             .weight(2f)
     ) {
-        val lazyRowState = rememberLazyListState()
-
         LazyRow(
             modifier = Modifier
                 .align(Center)
                 .fillMaxWidth(),
-            state = lazyRowState,
-            contentPadding = PaddingValues(horizontal = (screenWidth / 2 - IngredientDisplaySize / 2).dp),
-            flingBehavior = rememberSnapFlingBehavior(lazyRowState)
+            state = displayListState,
+            horizontalArrangement = spacedBy(30.dp),
+            verticalAlignment = CenterVertically,
+            contentPadding = PaddingValues(horizontal = (screenWidth / 2 - (IngredientDisplaySize + 8) / 2).dp),
+            flingBehavior = rememberSnapFlingBehavior(displayListState)
         ) {
             ingredientDisplayList.forEachIndexed { index, ingredient ->
                 item {
                     IngredientDisplay(
                         ingredient = ingredient,
                         typedIngredient = typedIngredient,
+                        index = index,
                         uiEvent = uiEvent
                     )
+                }
+
+                if (index + 1 <= ingredientDisplayList.lastIndex) {
+                    item {
+                        PlusIcon()
+                    }
                 }
             }
         }
@@ -199,39 +218,57 @@ private fun ColumnScope.DisplaySection(
 private fun IngredientDisplay(
     ingredient: String?,
     typedIngredient: String,
+    index: Int,
     uiEvent: (UiEvent) -> Unit
 ) {
-    Box(
-        modifier = Modifier
-            .clip(shape = RoundedCornerShape(22.dp))
-            .size(IngredientDisplaySize.dp)
-            .border(
-                width = (1.15).dp,
-                color = Color.Black.alpha(3),
-                shape = RoundedCornerShape(22.dp)
-            )
-            .background(color = Grey0)
-    ) {
-        ingredient?.let {
+    var hasFocus by remember { mutableStateOf(false) }
 
-        } ?: run {
-            val focusManager = LocalFocusManager.current
+    Box(modifier = Modifier.size((IngredientDisplaySize + 8).dp)) {
+        Box(
+            modifier = Modifier
+                .align(Center)
+                .clip(shape = RoundedCornerShape(22.dp))
+                .size(IngredientDisplaySize.dp)
+                .border(
+                    width = (1.15).dp,
+                    color = Color.Black.alpha(3),
+                    shape = RoundedCornerShape(22.dp)
+                )
+                .background(color = Grey0)
+        ) {
+            ingredient?.let {
 
-            SimpleTextField(
-                modifier = Modifier.align(Center),
-                value = typedIngredient,
-                keyboardActions = KeyboardActions(
-                    onDone = {
-                        focusManager.clearFocus()
-                        uiEvent(OnTypingIngredientEnded)
-                    }
-                ),
-                onValueChange = { uiEvent(OnIngredientTyped(it)) }
-            )
+            } ?: run {
+                val focusManager = LocalFocusManager.current
 
-            if (typedIngredient.isEmpty()) {
-                PlusIcon(modifier = Modifier.align(Center))
+                SimpleTextField(
+                    modifier = Modifier
+                        .align(Center)
+                        .onFocusEvent { hasFocus = it.hasFocus },
+                    value = typedIngredient,
+                    keyboardActions = KeyboardActions(
+                        onDone = {
+                            focusManager.clearFocus()
+                            uiEvent(OnTypingIngredientEnded(index))
+                        }
+                    ),
+                    onValueChange = { uiEvent(OnIngredientTyped(it)) }
+                )
+
+                if (!hasFocus && typedIngredient.isEmpty()) {
+                    PlusIcon(modifier = Modifier.align(Center))
+                }
             }
+        }
+
+        if (hasFocus) {
+            Image(
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .clickableWithoutRipple { uiEvent(OnClickRemoveIngredientDisplay(index)) },
+                painter = painterResource(id = R.drawable.ic_close),
+                contentDescription = null
+            )
         }
     }
 }
@@ -277,10 +314,12 @@ private fun FunctionButtonRow(
                 .clip(shape = RoundedCornerShape(12.dp))
                 .fillMaxHeight()
                 .background(color = SubColor)
+                .clickableWithoutRipple { uiEvent(OnClickAddIngredientDisplay(null)) },
         ) {
-            Image(
+            Icon(
                 modifier = Modifier.align(Center),
                 painter = painterResource(id = R.drawable.ic_plus),
+                tint = Color.White,
                 contentDescription = null
             )
         }
@@ -414,7 +453,7 @@ private fun LazyGridItemScope.IngredientButton(
 
 @Composable
 private fun BoxScope.TrashCan(
-    isDeletable: Boolean,
+    isRemovable: Boolean,
     uiEvent: (UiEvent) -> Unit
 ) {
     Box(
@@ -423,7 +462,7 @@ private fun BoxScope.TrashCan(
             .padding(bottom = 24.dp)
             .clip(shape = RoundedCornerShape(12.dp))
             .size(48.dp)
-            .background(color = Color.Red.alpha(if (isDeletable) 100 else 50))
+            .background(color = Color.Red.alpha(if (isRemovable) 100 else 50))
             .onGloballyPositioned {
                 uiEvent(
                     OnTrashCanMeasured(
@@ -436,7 +475,7 @@ private fun BoxScope.TrashCan(
 }
 
 @Composable
-private fun PlusIcon(modifier: Modifier) {
+private fun PlusIcon(modifier: Modifier = Modifier) {
     Icon(
         modifier = modifier,
         painter = painterResource(id = R.drawable.ic_plus),
