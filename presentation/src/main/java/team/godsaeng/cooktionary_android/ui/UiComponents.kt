@@ -156,7 +156,7 @@ fun SimpleTextField(
     Box(modifier = modifier) {
         CompositionLocalProvider(LocalTextSelectionColors.provides(textFieldSelectionColors())) {
             BasicTextField(
-                modifier = Modifier
+                modifier = modifier
                     .padding(horizontal = 8.dp)
                     .align(Center)
                     .fillMaxWidth(),

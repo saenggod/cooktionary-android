@@ -21,6 +21,11 @@ sealed interface MainContract : BaseContract<MainContract.UiState, MainContract.
     sealed interface UiEvent {
         data class OnIngredientTyped(val typedString: String) : UiEvent
 
+        data class OnIngredientDisplayFocused(
+            val ingredient: String?,
+            val index: Int
+        ) : UiEvent
+
         data class OnTypingIngredientEnded(val index: Int) : UiEvent
 
         data class OnClickRemoveIngredientDisplay(val index: Int) : UiEvent
@@ -42,9 +47,19 @@ sealed interface MainContract : BaseContract<MainContract.UiState, MainContract.
         ) : UiEvent
 
         data object OnClickAddIngredientButton : UiEvent
+
+        data object OnClearingFocusNeeded : UiEvent
+
+        data object OnClickReset : UiEvent
     }
 
     sealed interface UiEffect {
         data class ScrollToEndOfDisplayList(val targetIndex: Int) : UiEffect
+
+        data class ScrollToClickedDisplay(val targetIndex: Int) : UiEffect
+
+        data object ClearFocus : UiEffect
+
+        data object RequestFocus : UiEffect
     }
 }

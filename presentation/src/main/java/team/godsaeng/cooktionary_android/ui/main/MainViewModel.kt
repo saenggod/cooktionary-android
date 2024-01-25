@@ -14,12 +14,18 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.burnoutcrew.reorderable.ItemPosition
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEffect
+import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEffect.ClearFocus
+import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEffect.RequestFocus
+import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEffect.ScrollToClickedDisplay
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEffect.ScrollToEndOfDisplayList
+import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnClearingFocusNeeded
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnClickAddIngredientButton
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnClickAddIngredientDisplay
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnClickRemoveIngredientDisplay
+import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnClickReset
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnDragged
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnDraggingEnded
+import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnIngredientDisplayFocused
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnIngredientTyped
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnOrderChanged
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnTrashCanMeasured
@@ -37,6 +43,11 @@ class MainViewModel @Inject constructor() : ViewModel(), MainContract {
 
     override fun uiEvent(event: MainContract.UiEvent) = when (event) {
         is OnIngredientTyped -> onIngredientTyped(event.typedString)
+
+        is OnIngredientDisplayFocused -> onIngredientDisplayFocused(
+            ingredient = event.ingredient,
+            index = event.index
+        )
 
         is OnTypingIngredientEnded -> onTypingIngredientEnded(event.index)
 
@@ -59,6 +70,10 @@ class MainViewModel @Inject constructor() : ViewModel(), MainContract {
         )
 
         is OnClickAddIngredientButton -> onClickAddIngredientButton()
+
+        is OnClearingFocusNeeded -> onClearingFocusNeeded()
+
+        is OnClickReset -> onClickReset()
     }
 
     private fun onIngredientTyped(typedString: String) {
@@ -67,46 +82,63 @@ class MainViewModel @Inject constructor() : ViewModel(), MainContract {
         }
     }
 
-    private fun onTypingIngredientEnded(editedItemIndex: Int) {
+    private fun onIngredientDisplayFocused(
+        ingredient: String?,
+        index: Int
+    ) {
         _uiState.update {
-            it.copy(ingredientDisplayList = it.ingredientDisplayList.toMutableList().mapIndexed { index, s ->
-                if (editedItemIndex == index) {
-                    uiState.value.typedIngredient
-                } else {
-                    s
-                }
-            })
+            it.copy(typedIngredient = ingredient ?: "")
         }
 
+        viewModelScope.launch {
+            _uiEffect.emit(ScrollToClickedDisplay(index * 2))
+        }
+    }
+
+    private fun onTypingIngredientEnded(editedItemIndex: Int) {
         _uiState.update {
-            it.copy(typedIngredient = "")
+            it.copy(
+                typedIngredient = "",
+                ingredientDisplayList = it.ingredientDisplayList.toMutableList().mapIndexed { index, s ->
+                    if (editedItemIndex == index) {
+                        uiState.value.typedIngredient
+                    } else {
+                        s
+                    }
+                }
+            )
         }
     }
 
     private fun onClickRemoveIngredientDisplay(index: Int) {
         _uiState.update {
-            it.copy(ingredientDisplayList = it.ingredientDisplayList.toMutableList().apply {
-                removeAt(index)
-            })
+            it.copy(
+                typedIngredient = "",
+                addedIngredientCount = it.ingredientDisplayList.size - 1,
+                ingredientDisplayList = it.ingredientDisplayList.toMutableList().apply {
+                    removeAt(index)
+                }
+            )
         }
     }
 
     private fun onClickAddIngredientDisplay(ingredient: String?) {
         val ingredientDisplayList = uiState.value.ingredientDisplayList
 
-        if (ingredientDisplayList.isNotEmpty() && ingredientDisplayList.last() == null) {
+        if (ingredientDisplayList.last() == null) {
 
         } else {
             _uiState.update {
                 it.copy(
-                    addedIngredientCount = it.addedIngredientCount + 1,
+                    addedIngredientCount = it.ingredientDisplayList.size + 1,
                     ingredientDisplayList = ingredientDisplayList.toMutableList().apply { add(ingredient) }
                 )
             }
-        }
 
-        viewModelScope.launch {
-            _uiEffect.emit(ScrollToEndOfDisplayList(ingredientDisplayList.size * 2))
+            viewModelScope.launch {
+                _uiEffect.emit(ScrollToEndOfDisplayList(ingredientDisplayList.size * 2))
+                _uiEffect.emit(RequestFocus)
+            }
         }
     }
 
@@ -173,5 +205,20 @@ class MainViewModel @Inject constructor() : ViewModel(), MainContract {
 
     private fun onClickAddIngredientButton() {
 
+    }
+
+    private fun onClearingFocusNeeded() {
+        viewModelScope.launch {
+            _uiEffect.emit(ClearFocus)
+        }
+    }
+
+    private fun onClickReset() {
+        _uiState.update {
+            it.copy(
+                addedIngredientCount = 1,
+                ingredientDisplayList = listOf(null)
+            )
+        }
     }
 }

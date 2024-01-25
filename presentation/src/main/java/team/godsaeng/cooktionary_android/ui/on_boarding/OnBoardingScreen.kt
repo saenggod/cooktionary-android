@@ -30,7 +30,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import kotlinx.coroutines.flow.collectLatest
 import team.godsaeng.cooktionary_android.R
 import team.godsaeng.cooktionary_android.ui.StyledText
 import team.godsaeng.cooktionary_android.ui.base.use
@@ -74,7 +73,7 @@ fun OnBoardingScreen(
     }
 
     LaunchedEffect(uiEffect) {
-        uiEffect.collectLatest { uiEffect ->
+        uiEffect.collect { uiEffect ->
             when (uiEffect) {
                 is LoginWithKakao -> socialLoginManager.loginWithKakao()
 

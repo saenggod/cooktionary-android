@@ -5,7 +5,6 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Arrangement.spacedBy
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
@@ -22,8 +21,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyItemScope
-import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -49,7 +46,9 @@ import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.focus.onFocusEvent
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInteropFilter
@@ -63,7 +62,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import kotlinx.coroutines.flow.collectLatest
 import org.burnoutcrew.reorderable.ReorderableItem
 import org.burnoutcrew.reorderable.detectReorderAfterLongPress
 import org.burnoutcrew.reorderable.rememberReorderableLazyGridState
@@ -76,13 +74,19 @@ import team.godsaeng.cooktionary_android.ui.alpha
 import team.godsaeng.cooktionary_android.ui.base.use
 import team.godsaeng.cooktionary_android.ui.branchedModifier
 import team.godsaeng.cooktionary_android.ui.clickableWithoutRipple
+import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEffect.ClearFocus
+import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEffect.RequestFocus
+import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEffect.ScrollToClickedDisplay
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEffect.ScrollToEndOfDisplayList
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent
+import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnClearingFocusNeeded
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnClickAddIngredientButton
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnClickAddIngredientDisplay
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnClickRemoveIngredientDisplay
+import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnClickReset
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnDragged
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnDraggingEnded
+import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnIngredientDisplayFocused
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnIngredientTyped
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnOrderChanged
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnTrashCanMeasured
@@ -101,11 +105,19 @@ fun MainScreen(
 ) {
     val (uiState, uiEvent, uiEffect) = use(viewModel)
     val displayListState = rememberLazyListState()
+    val focusManager = LocalFocusManager.current
+    val focusRequester = remember { FocusRequester() }
 
     LaunchedEffect(uiEffect) {
-        uiEffect.collectLatest { uiEffect ->
+        uiEffect.collect { uiEffect ->
             when (uiEffect) {
                 is ScrollToEndOfDisplayList -> displayListState.animateScrollToItem(uiEffect.targetIndex)
+
+                is ScrollToClickedDisplay -> displayListState.animateScrollToItem(uiEffect.targetIndex)
+
+                is ClearFocus -> focusManager.clearFocus()
+
+                is RequestFocus -> focusRequester.requestFocus()
             }
         }
     }
@@ -116,16 +128,21 @@ fun MainScreen(
             .background(color = MaterialTheme.colors.background)
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
-            TopSection(uiState.addedIngredientCount)
+            TopSection(
+                addedIngredientCount = uiState.addedIngredientCount,
+                uiEvent = uiEvent
+            )
 
             DisplaySection(
                 displayListState = displayListState,
                 ingredientDisplayList = uiState.ingredientDisplayList,
                 typedIngredient = uiState.typedIngredient,
+                focusRequester = focusRequester,
                 uiEvent = uiEvent,
             )
 
             ButtonSection(
+                ingredientDisplayList = uiState.ingredientDisplayList,
                 ingredientButtonList = uiState.ingredientButtonList,
                 uiEvent = uiEvent
             )
@@ -142,14 +159,16 @@ fun MainScreen(
 
 @Composable
 private fun TopSection(
-    ingredientCount: Int
+    addedIngredientCount: Int,
+    uiEvent: (UiEvent) -> Unit
 ) {
     TopBar(
         onClickProfileIcon = { /*TODO*/ },
         middleContents = {
             Row(verticalAlignment = CenterVertically) {
                 Icon(
-                    painter = painterResource(id = R.drawable.ic_refresh),
+                    modifier = Modifier.clickableWithoutRipple { uiEvent(OnClickReset) },
+                    painter = painterResource(id = R.drawable.ic_reset),
                     tint = AddedIngredientDescColor,
                     contentDescription = null
                 )
@@ -157,7 +176,7 @@ private fun TopSection(
                 Spacer(modifier = Modifier.width(4.dp))
 
                 StyledText(
-                    text = stringResource(id = R.string.added_ingredient_count, ingredientCount),
+                    text = stringResource(id = R.string.added_ingredient_count, addedIngredientCount),
                     style = Typography.bodyMedium,
                     color = AddedIngredientDescColor,
                     fontSize = 12
@@ -175,6 +194,7 @@ private fun ColumnScope.DisplaySection(
     displayListState: LazyListState,
     ingredientDisplayList: List<String?>,
     typedIngredient: String,
+    focusRequester: FocusRequester,
     uiEvent: (UiEvent) -> Unit
 ) {
     val screenWidth = LocalConfiguration.current.screenWidthDp
@@ -200,6 +220,7 @@ private fun ColumnScope.DisplaySection(
                         ingredient = ingredient,
                         typedIngredient = typedIngredient,
                         index = index,
+                        focusRequester = if (index == ingredientDisplayList.lastIndex) focusRequester else null,
                         uiEvent = uiEvent
                     )
                 }
@@ -219,6 +240,7 @@ private fun IngredientDisplay(
     ingredient: String?,
     typedIngredient: String,
     index: Int,
+    focusRequester: FocusRequester?,
     uiEvent: (UiEvent) -> Unit
 ) {
     var hasFocus by remember { mutableStateOf(false) }
@@ -235,29 +257,54 @@ private fun IngredientDisplay(
                     shape = RoundedCornerShape(22.dp)
                 )
                 .background(color = Grey0)
-        ) {
-            ingredient?.let {
-
-            } ?: run {
-                val focusManager = LocalFocusManager.current
-
-                SimpleTextField(
-                    modifier = Modifier
-                        .align(Center)
-                        .onFocusEvent { hasFocus = it.hasFocus },
-                    value = typedIngredient,
-                    keyboardActions = KeyboardActions(
-                        onDone = {
-                            focusManager.clearFocus()
-                            uiEvent(OnTypingIngredientEnded(index))
-                        }
-                    ),
-                    onValueChange = { uiEvent(OnIngredientTyped(it)) }
-                )
-
-                if (!hasFocus && typedIngredient.isEmpty()) {
-                    PlusIcon(modifier = Modifier.align(Center))
+                .clickableWithoutRipple {
+                    uiEvent(
+                        OnIngredientDisplayFocused(
+                            ingredient = ingredient,
+                            index = index
+                        )
+                    )
                 }
+        ) {
+            SimpleTextField(
+                modifier = branchedModifier(
+                    condition = focusRequester != null,
+                    onDefault = {
+                        Modifier
+                            .align(Center)
+                            .onFocusChanged {
+                                hasFocus = it.isFocused
+
+                                if (it.isFocused) {
+                                    uiEvent(
+                                        OnIngredientDisplayFocused(
+                                            ingredient = ingredient,
+                                            index = index
+                                        )
+                                    )
+                                }
+                            }
+                    },
+                    onTrue = { modifier ->
+                        focusRequester?.let {
+                            modifier.focusRequester(focusRequester)
+                        } ?: run {
+                            modifier
+                        }
+                    }
+                ),
+                value = if (hasFocus) typedIngredient else ingredient.orEmpty(),
+                keyboardActions = KeyboardActions(
+                    onDone = {
+                        uiEvent(OnClearingFocusNeeded)
+                        uiEvent(OnTypingIngredientEnded(index))
+                    }
+                ),
+                onValueChange = { uiEvent(OnIngredientTyped(it)) }
+            )
+
+            if (!hasFocus && ingredient == null) {
+                PlusIcon(modifier = Modifier.align(Center))
             }
         }
 
@@ -265,7 +312,10 @@ private fun IngredientDisplay(
             Image(
                 modifier = Modifier
                     .align(Alignment.TopEnd)
-                    .clickableWithoutRipple { uiEvent(OnClickRemoveIngredientDisplay(index)) },
+                    .clickableWithoutRipple {
+                        uiEvent(OnClearingFocusNeeded)
+                        uiEvent(OnClickRemoveIngredientDisplay(index))
+                    },
                 painter = painterResource(id = R.drawable.ic_close),
                 contentDescription = null
             )
@@ -275,6 +325,7 @@ private fun IngredientDisplay(
 
 @Composable
 private fun ColumnScope.ButtonSection(
+    ingredientDisplayList: List<String?>,
     ingredientButtonList: List<String>,
     uiEvent: (UiEvent) -> Unit
 ) {
@@ -287,7 +338,7 @@ private fun ColumnScope.ButtonSection(
             .background(color = Grey0.alpha(60))
     ) {
         FunctionButtonRow(
-            ingredientButtonList = ingredientButtonList,
+            ingredientDisplayList = ingredientDisplayList,
             uiEvent = uiEvent
         )
 
@@ -300,7 +351,7 @@ private fun ColumnScope.ButtonSection(
 
 @Composable
 private fun FunctionButtonRow(
-    ingredientButtonList: List<String>,
+    ingredientDisplayList: List<String?>,
     uiEvent: (UiEvent) -> Unit
 ) {
     Row(
@@ -331,7 +382,7 @@ private fun FunctionButtonRow(
                 .weight(2.5f)
                 .clip(shape = RoundedCornerShape(12.dp))
                 .fillMaxHeight()
-                .background(color = if (ingredientButtonList.isEmpty()) Grey1 else PointColor)
+                .background(color = if (ingredientDisplayList.isEmpty() || ingredientDisplayList.contains(null)) Grey1 else PointColor)
                 .clickableWithoutRipple { }
         ) {
             StyledText(
