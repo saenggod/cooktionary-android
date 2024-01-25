@@ -29,16 +29,20 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import kotlinx.coroutines.flow.collectLatest
+import androidx.navigation.NavController
 import team.godsaeng.cooktionary_android.R
 import team.godsaeng.cooktionary_android.ui.StyledText
 import team.godsaeng.cooktionary_android.ui.base.use
+import team.godsaeng.cooktionary_android.ui.clickableWithoutRipple
+import team.godsaeng.cooktionary_android.ui.container.ROUTE_MAIN
 import team.godsaeng.cooktionary_android.ui.getContext
+import team.godsaeng.cooktionary_android.ui.on_boarding.OnBoardingContract.UiEffect.GoToMain
 import team.godsaeng.cooktionary_android.ui.on_boarding.OnBoardingContract.UiEffect.LoginWithGoogle
 import team.godsaeng.cooktionary_android.ui.on_boarding.OnBoardingContract.UiEffect.LoginWithKakao
 import team.godsaeng.cooktionary_android.ui.on_boarding.OnBoardingContract.UiEvent
 import team.godsaeng.cooktionary_android.ui.on_boarding.OnBoardingContract.UiEvent.OnClickGoogleLogin
 import team.godsaeng.cooktionary_android.ui.on_boarding.OnBoardingContract.UiEvent.OnClickKakaoLogin
+import team.godsaeng.cooktionary_android.ui.on_boarding.OnBoardingContract.UiEvent.OnClickSkip
 import team.godsaeng.cooktionary_android.ui.on_boarding.OnBoardingContract.UiEvent.OnFailureLogin
 import team.godsaeng.cooktionary_android.ui.on_boarding.OnBoardingContract.UiEvent.OnSuccessLogin
 import team.godsaeng.cooktionary_android.ui.theme.TextColorGrey4
@@ -48,7 +52,10 @@ val KakaoYellow = Color(0xFFFEE500)
 val GoogleGrey = Color(0xFFF2F2F2)
 
 @Composable
-fun OnBoardingScreen(viewModel: OnBoardingViewModel = hiltViewModel()) {
+fun OnBoardingScreen(
+    navController: NavController,
+    viewModel: OnBoardingViewModel = hiltViewModel()
+) {
     val (uiState, uiEvent, uiEffect) = use(viewModel)
     val context = getContext()
     val socialLoginManager = remember {
@@ -66,11 +73,13 @@ fun OnBoardingScreen(viewModel: OnBoardingViewModel = hiltViewModel()) {
     }
 
     LaunchedEffect(uiEffect) {
-        uiEffect.collectLatest { uiEffect ->
+        uiEffect.collect { uiEffect ->
             when (uiEffect) {
                 is LoginWithKakao -> socialLoginManager.loginWithKakao()
 
                 is LoginWithGoogle -> socialLoginManager.launchGoogleLoginLauncher()
+
+                is GoToMain -> navController.navigate(ROUTE_MAIN)
             }
         }
     }
@@ -80,7 +89,7 @@ fun OnBoardingScreen(viewModel: OnBoardingViewModel = hiltViewModel()) {
             .fillMaxSize()
             .background(color = MaterialTheme.colors.background)
     ) {
-        SkipSection()
+        SkipSection(uiEvent)
 
         LogoSection()
 
@@ -89,11 +98,14 @@ fun OnBoardingScreen(viewModel: OnBoardingViewModel = hiltViewModel()) {
 }
 
 @Composable
-private fun BoxScope.SkipSection() {
+private fun BoxScope.SkipSection(
+    uiEvent: (UiEvent) -> Unit
+) {
     StyledText(
         modifier = Modifier
             .align(Alignment.TopEnd)
-            .padding(16.dp),
+            .padding(16.dp)
+            .clickableWithoutRipple { uiEvent(OnClickSkip) },
         stringId = R.string.skip,
         style = Typography.bodyMedium,
         fontSize = 14,

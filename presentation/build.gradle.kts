@@ -61,6 +61,7 @@ dependencies {
     implementation(libs.bundles.compose)
     implementation(libs.bundles.common)
     implementation(libs.bundles.retrofit)
+    implementation(libs.compose.reorder)
 
     // ksp
     ksp(libs.ksp.hilt)
