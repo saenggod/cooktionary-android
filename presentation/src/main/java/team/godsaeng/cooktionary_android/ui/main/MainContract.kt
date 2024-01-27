@@ -6,37 +6,36 @@ import team.godsaeng.cooktionary_android.ui.base.BaseContract
 
 sealed interface MainContract : BaseContract<MainContract.UiState, MainContract.UiEvent, MainContract.UiEffect> {
     data class UiState(
-        val isLoading: Boolean = false,
-        val addedIngredientCount: Int = 1,
-        val typedIngredient: String = "",
-        val ingredientDisplayList: List<String?> = listOf(null),
-        val ingredientButtonList: List<String> = emptyList(),
-        val isDragging: Boolean = false,
-        val isRemovable: Boolean = false,
-        val draggingPosition: Offset = Offset(0f, 0f),
+        val displayList: List<String?> = emptyList(),
+        val buttonList: List<String> = emptyList(),
+        val selectedDisplayIndex: Int = -1,
+        val typedText: String = "",
+        val isButtonDragging: Boolean = false,
+        val isButtonRemovable: Boolean = false,
+        val buttonDraggingPosition: Offset = Offset(0f, 0f),
         val trashCanPosition: Offset = Offset(0f, 0f),
         val trashCanSize: Int = 0,
     )
 
     sealed interface UiEvent {
-        data class OnIngredientTyped(val typedString: String) : UiEvent
+        data object OnClickAddDisplay : UiEvent
 
-        data class OnIngredientDisplayFocused(
-            val ingredient: String?,
-            val index: Int
+        data class OnTyped(val text: String) : UiEvent
+
+        data class OnClickDisplay(
+            val index: Int,
+            val ingredient: String?
         ) : UiEvent
 
-        data class OnTypingIngredientEnded(val index: Int) : UiEvent
+        data class OnDone(val index: Int) : UiEvent
 
-        data class OnClickRemoveIngredientDisplay(val index: Int) : UiEvent
+        data class OnClickRemoveDisplay(val index: Int) : UiEvent
 
-        data class OnClickAddIngredientDisplay(val ingredient: String?) : UiEvent
+        data class OnButtonDragged(val offset: Offset) : UiEvent
 
-        data class OnDragged(val offset: Offset) : UiEvent
+        data class OnButtonDraggingEnded(val removableItemIndex: Int) : UiEvent
 
-        data class OnDraggingEnded(val removableItemIndex: Int) : UiEvent
-
-        data class OnOrderChanged(
+        data class OnButtonOrderChanged(
             val from: ItemPosition,
             val to: ItemPosition
         ) : UiEvent
@@ -45,21 +44,9 @@ sealed interface MainContract : BaseContract<MainContract.UiState, MainContract.
             val trashCanSize: Int,
             val trashCanPosition: Offset
         ) : UiEvent
-
-        data object OnClickAddIngredientButton : UiEvent
-
-        data object OnClearingFocusNeeded : UiEvent
-
-        data object OnClickReset : UiEvent
     }
 
     sealed interface UiEffect {
-        data class ScrollToEndOfDisplayList(val targetIndex: Int) : UiEffect
-
-        data class ScrollToClickedDisplay(val targetIndex: Int) : UiEffect
-
         data object ClearFocus : UiEffect
-
-        data object RequestFocus : UiEffect
     }
 }

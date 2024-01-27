@@ -144,6 +144,7 @@ inline fun BackButton(
 @Composable
 fun SimpleTextField(
     modifier: Modifier = Modifier,
+    decorationBox: @Composable (innerTextField: @Composable () -> Unit) -> Unit,
     value: String,
     onValueChange: (String) -> Unit,
     singleLine: Boolean = true,
@@ -153,28 +154,24 @@ fun SimpleTextField(
 ) {
     val focusManager = LocalFocusManager.current
 
-    Box(modifier = modifier) {
-        CompositionLocalProvider(LocalTextSelectionColors.provides(textFieldSelectionColors())) {
-            BasicTextField(
-                modifier = modifier
-                    .padding(horizontal = 8.dp)
-                    .align(Center)
-                    .fillMaxWidth(),
-                value = value,
-                onValueChange = onValueChange,
-                textStyle = Typography.labelMedium.copy(
-                    color = textColor,
-                    textAlign = TextAlign.Center
-                ),
-                singleLine = singleLine,
-                cursorBrush = SolidColor(TextColor),
-                keyboardActions = if (keyboardActions == KeyboardActions.Default) {
-                    KeyboardActions(onDone = { focusManager.clearFocus() })
-                } else {
-                    keyboardActions
-                },
-                keyboardOptions = keyboardOptions
-            )
-        }
+    CompositionLocalProvider(LocalTextSelectionColors.provides(textFieldSelectionColors())) {
+        BasicTextField(
+            modifier = modifier,
+            value = value,
+            onValueChange = onValueChange,
+            textStyle = Typography.labelMedium.copy(
+                color = textColor,
+                textAlign = TextAlign.Center
+            ),
+            singleLine = singleLine,
+            cursorBrush = SolidColor(TextColor),
+            keyboardActions = if (keyboardActions == KeyboardActions.Default) {
+                KeyboardActions(onDone = { focusManager.clearFocus() })
+            } else {
+                keyboardActions
+            },
+            keyboardOptions = keyboardOptions,
+            decorationBox = decorationBox
+        )
     }
 }

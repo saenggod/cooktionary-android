@@ -21,7 +21,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyGridItemScope
@@ -36,7 +35,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -48,7 +46,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInteropFilter
@@ -62,6 +59,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import kotlinx.coroutines.delay
 import org.burnoutcrew.reorderable.ReorderableItem
 import org.burnoutcrew.reorderable.detectReorderAfterLongPress
 import org.burnoutcrew.reorderable.rememberReorderableLazyGridState
@@ -75,22 +73,16 @@ import team.godsaeng.cooktionary_android.ui.base.use
 import team.godsaeng.cooktionary_android.ui.branchedModifier
 import team.godsaeng.cooktionary_android.ui.clickableWithoutRipple
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEffect.ClearFocus
-import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEffect.RequestFocus
-import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEffect.ScrollToClickedDisplay
-import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEffect.ScrollToEndOfDisplayList
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent
-import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnClearingFocusNeeded
-import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnClickAddIngredientButton
-import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnClickAddIngredientDisplay
-import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnClickRemoveIngredientDisplay
-import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnClickReset
-import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnDragged
-import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnDraggingEnded
-import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnIngredientDisplayFocused
-import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnIngredientTyped
-import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnOrderChanged
+import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnButtonDragged
+import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnButtonDraggingEnded
+import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnButtonOrderChanged
+import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnClickAddDisplay
+import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnClickDisplay
+import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnClickRemoveDisplay
+import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnDone
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnTrashCanMeasured
-import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnTypingIngredientEnded
+import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnTyped
 import team.godsaeng.cooktionary_android.ui.theme.AddedIngredientDescColor
 import team.godsaeng.cooktionary_android.ui.theme.Grey0
 import team.godsaeng.cooktionary_android.ui.theme.Grey1
@@ -104,20 +96,13 @@ fun MainScreen(
     viewModel: MainViewModel = hiltViewModel()
 ) {
     val (uiState, uiEvent, uiEffect) = use(viewModel)
-    val displayListState = rememberLazyListState()
     val focusManager = LocalFocusManager.current
-    val focusRequester = remember { FocusRequester() }
 
     LaunchedEffect(uiEffect) {
+        // repeatedOnStart
         uiEffect.collect { uiEffect ->
             when (uiEffect) {
-                is ScrollToEndOfDisplayList -> displayListState.animateScrollToItem(uiEffect.targetIndex)
-
-                is ScrollToClickedDisplay -> displayListState.animateScrollToItem(uiEffect.targetIndex)
-
                 is ClearFocus -> focusManager.clearFocus()
-
-                is RequestFocus -> focusRequester.requestFocus()
             }
         }
     }
@@ -129,28 +114,27 @@ fun MainScreen(
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
             TopSection(
-                addedIngredientCount = uiState.addedIngredientCount,
+                displayCount = uiState.displayList.size,
                 uiEvent = uiEvent
             )
 
             DisplaySection(
-                displayListState = displayListState,
-                ingredientDisplayList = uiState.ingredientDisplayList,
-                typedIngredient = uiState.typedIngredient,
-                focusRequester = focusRequester,
+                displayList = uiState.displayList,
+                selectedDisplayIndex = uiState.selectedDisplayIndex,
+                typedText = uiState.typedText,
                 uiEvent = uiEvent,
             )
 
             ButtonSection(
-                ingredientDisplayList = uiState.ingredientDisplayList,
-                ingredientButtonList = uiState.ingredientButtonList,
+                displayList = uiState.displayList,
+                buttonList = uiState.buttonList,
                 uiEvent = uiEvent
             )
         }
 
-        if (uiState.isDragging) {
+        if (uiState.isButtonDragging) {
             TrashCan(
-                isRemovable = uiState.isRemovable,
+                isButtonRemovable = uiState.isButtonRemovable,
                 uiEvent = uiEvent
             )
         }
@@ -159,7 +143,7 @@ fun MainScreen(
 
 @Composable
 private fun TopSection(
-    addedIngredientCount: Int,
+    displayCount: Int,
     uiEvent: (UiEvent) -> Unit
 ) {
     TopBar(
@@ -167,7 +151,7 @@ private fun TopSection(
         middleContents = {
             Row(verticalAlignment = CenterVertically) {
                 Icon(
-                    modifier = Modifier.clickableWithoutRipple { uiEvent(OnClickReset) },
+                    modifier = Modifier.clickableWithoutRipple { },
                     painter = painterResource(id = R.drawable.ic_reset),
                     tint = AddedIngredientDescColor,
                     contentDescription = null
@@ -176,7 +160,7 @@ private fun TopSection(
                 Spacer(modifier = Modifier.width(4.dp))
 
                 StyledText(
-                    text = stringResource(id = R.string.added_ingredient_count, addedIngredientCount),
+                    text = stringResource(id = R.string.added_ingredient_count, displayCount),
                     style = Typography.bodyMedium,
                     color = AddedIngredientDescColor,
                     fontSize = 12
@@ -186,17 +170,17 @@ private fun TopSection(
     )
 }
 
-const val IngredientDisplaySize = 106
+const val IngredientDisplaySize = 114
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun ColumnScope.DisplaySection(
-    displayListState: LazyListState,
-    ingredientDisplayList: List<String?>,
-    typedIngredient: String,
-    focusRequester: FocusRequester,
+    displayList: List<String?>,
+    selectedDisplayIndex: Int,
+    typedText: String,
     uiEvent: (UiEvent) -> Unit
 ) {
+    val lazyListState = rememberLazyListState()
     val screenWidth = LocalConfiguration.current.screenWidthDp
 
     Box(
@@ -208,24 +192,26 @@ private fun ColumnScope.DisplaySection(
             modifier = Modifier
                 .align(Center)
                 .fillMaxWidth(),
-            state = displayListState,
+            state = lazyListState,
             horizontalArrangement = spacedBy(30.dp),
             verticalAlignment = CenterVertically,
-            contentPadding = PaddingValues(horizontal = (screenWidth / 2 - (IngredientDisplaySize + 8) / 2).dp),
-            flingBehavior = rememberSnapFlingBehavior(displayListState)
+            contentPadding = PaddingValues(horizontal = ((screenWidth - IngredientDisplaySize) / 2).dp),
+            flingBehavior = rememberSnapFlingBehavior(lazyListState)
         ) {
-            ingredientDisplayList.forEachIndexed { index, ingredient ->
+            displayList.forEachIndexed { index, ingredient ->
+                val displayIndex = index * 2
+
                 item {
                     IngredientDisplay(
+                        index = displayIndex,
                         ingredient = ingredient,
-                        typedIngredient = typedIngredient,
-                        index = index,
-                        focusRequester = if (index == ingredientDisplayList.lastIndex) focusRequester else null,
+                        selectedDisplayIndex = selectedDisplayIndex,
+                        typedText = typedText,
                         uiEvent = uiEvent
                     )
                 }
 
-                if (index + 1 <= ingredientDisplayList.lastIndex) {
+                if (index < displayList.lastIndex) {
                     item {
                         PlusIcon()
                     }
@@ -233,100 +219,86 @@ private fun ColumnScope.DisplaySection(
             }
         }
     }
-}
 
-@Composable
-private fun IngredientDisplay(
-    ingredient: String?,
-    typedIngredient: String,
-    index: Int,
-    focusRequester: FocusRequester?,
-    uiEvent: (UiEvent) -> Unit
-) {
-    var hasFocus by remember { mutableStateOf(false) }
-
-    Box(modifier = Modifier.size((IngredientDisplaySize + 8).dp)) {
-        Box(
-            modifier = Modifier
-                .align(Center)
-                .clip(shape = RoundedCornerShape(22.dp))
-                .size(IngredientDisplaySize.dp)
-                .border(
-                    width = (1.15).dp,
-                    color = Color.Black.alpha(3),
-                    shape = RoundedCornerShape(22.dp)
-                )
-                .background(color = Grey0)
-                .clickableWithoutRipple {
-                    uiEvent(
-                        OnIngredientDisplayFocused(
-                            ingredient = ingredient,
-                            index = index
-                        )
-                    )
-                }
-        ) {
-            SimpleTextField(
-                modifier = branchedModifier(
-                    condition = focusRequester != null,
-                    onDefault = {
-                        Modifier
-                            .align(Center)
-                            .onFocusChanged {
-                                hasFocus = it.isFocused
-
-                                if (it.isFocused) {
-                                    uiEvent(
-                                        OnIngredientDisplayFocused(
-                                            ingredient = ingredient,
-                                            index = index
-                                        )
-                                    )
-                                }
-                            }
-                    },
-                    onTrue = { modifier ->
-                        focusRequester?.let {
-                            modifier.focusRequester(focusRequester)
-                        } ?: run {
-                            modifier
-                        }
-                    }
-                ),
-                value = if (hasFocus) typedIngredient else ingredient.orEmpty(),
-                keyboardActions = KeyboardActions(
-                    onDone = {
-                        uiEvent(OnClearingFocusNeeded)
-                        uiEvent(OnTypingIngredientEnded(index))
-                    }
-                ),
-                onValueChange = { uiEvent(OnIngredientTyped(it)) }
-            )
-
-            if (!hasFocus && ingredient == null) {
-                PlusIcon(modifier = Modifier.align(Center))
-            }
-        }
-
-        if (hasFocus) {
-            Image(
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .clickableWithoutRipple {
-                        uiEvent(OnClearingFocusNeeded)
-                        uiEvent(OnClickRemoveIngredientDisplay(index))
-                    },
-                painter = painterResource(id = R.drawable.ic_close),
-                contentDescription = null
-            )
+    LaunchedEffect(selectedDisplayIndex) {
+        if (selectedDisplayIndex >= 0) {
+            lazyListState.animateScrollToItem(selectedDisplayIndex)
         }
     }
 }
 
 @Composable
+private fun IngredientDisplay(
+    index: Int,
+    ingredient: String?,
+    selectedDisplayIndex: Int,
+    typedText: String,
+    uiEvent: (UiEvent) -> Unit
+) {
+    val focusRequester = remember { FocusRequester() }
+    val isSelected = index == selectedDisplayIndex
+
+    LaunchedEffect(selectedDisplayIndex) {
+        if (isSelected) {
+            delay(50L)
+            focusRequester.requestFocus()
+        }
+    }
+
+    SimpleTextField(
+        modifier = Modifier.focusRequester(focusRequester),
+        decorationBox = {
+            Box(modifier = Modifier.size(IngredientDisplaySize.dp)) {
+                Box(
+                    modifier = Modifier
+                        .align(Center)
+                        .padding(4.dp)
+                        .clip(shape = RoundedCornerShape(22.dp))
+                        .fillMaxSize()
+                        .border(
+                            width = (1.15).dp,
+                            color = Color.Black.alpha(3),
+                            shape = RoundedCornerShape(22.dp)
+                        )
+                        .background(color = Grey0)
+                        .clickableWithoutRipple {
+                            uiEvent(
+                                OnClickDisplay(
+                                    index = index,
+                                    ingredient = ingredient
+                                )
+                            )
+                        }
+                ) {
+                    Box(modifier = Modifier.align(Center)) {
+                        it()
+                    }
+
+                    if (!isSelected && ingredient == null)
+                        PlusIcon(modifier = Modifier.align(Center))
+                }
+
+                if (isSelected) {
+                    Image(
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .clickableWithoutRipple { uiEvent(OnClickRemoveDisplay(index / 2)) },
+                        painter = painterResource(id = R.drawable.ic_close),
+                        contentDescription = null
+                    )
+                }
+            }
+        },
+        value = if (isSelected) typedText else ingredient.orEmpty(),
+        keyboardActions = KeyboardActions(onDone = { uiEvent(OnDone(index / 2)) }),
+        onValueChange = { uiEvent(OnTyped(it)) }
+    )
+}
+
+@Composable
 private fun ColumnScope.ButtonSection(
-    ingredientDisplayList: List<String?>,
-    ingredientButtonList: List<String>,
+    displayList: List<String?>,
+    buttonList: List<String>,
     uiEvent: (UiEvent) -> Unit
 ) {
     Column(
@@ -338,12 +310,12 @@ private fun ColumnScope.ButtonSection(
             .background(color = Grey0.alpha(60))
     ) {
         FunctionButtonRow(
-            ingredientDisplayList = ingredientDisplayList,
+            displayList = displayList,
             uiEvent = uiEvent
         )
 
         IngredientsButtonSection(
-            ingredientButtonList = ingredientButtonList,
+            buttonList = buttonList,
             uiEvent = uiEvent
         )
     }
@@ -351,7 +323,7 @@ private fun ColumnScope.ButtonSection(
 
 @Composable
 private fun FunctionButtonRow(
-    ingredientDisplayList: List<String?>,
+    displayList: List<String?>,
     uiEvent: (UiEvent) -> Unit
 ) {
     Row(
@@ -365,7 +337,7 @@ private fun FunctionButtonRow(
                 .clip(shape = RoundedCornerShape(12.dp))
                 .fillMaxHeight()
                 .background(color = SubColor)
-                .clickableWithoutRipple { uiEvent(OnClickAddIngredientDisplay(null)) },
+                .clickableWithoutRipple { uiEvent(OnClickAddDisplay) },
         ) {
             Icon(
                 modifier = Modifier.align(Center),
@@ -382,7 +354,7 @@ private fun FunctionButtonRow(
                 .weight(2.5f)
                 .clip(shape = RoundedCornerShape(12.dp))
                 .fillMaxHeight()
-                .background(color = if (ingredientDisplayList.isEmpty() || ingredientDisplayList.contains(null)) Grey1 else PointColor)
+                .background(color = if (displayList.isEmpty() || displayList.contains(null)) Grey1 else PointColor)
                 .clickableWithoutRipple { }
         ) {
             StyledText(
@@ -398,20 +370,20 @@ private fun FunctionButtonRow(
 
 @Composable
 private fun ColumnScope.IngredientsButtonSection(
-    ingredientButtonList: List<String>,
+    buttonList: List<String>,
     uiEvent: (UiEvent) -> Unit
 ) {
     val reorderableLazyGridState = rememberReorderableLazyGridState(
         onMove = { from, to ->
             uiEvent(
-                OnOrderChanged(
+                OnButtonOrderChanged(
                     from = from,
                     to = to
                 )
             )
         },
         onDragEnd = { _, to ->
-            uiEvent(OnDraggingEnded(to))
+            uiEvent(OnButtonDraggingEnded(to))
         }
     )
 
@@ -431,7 +403,7 @@ private fun ColumnScope.IngredientsButtonSection(
             verticalArrangement = spacedBy(2.dp)
         ) {
             items(
-                items = ingredientButtonList,
+                items = buttonList,
                 key = { it }
             ) { item ->
                 ReorderableItem(
@@ -447,7 +419,7 @@ private fun ColumnScope.IngredientsButtonSection(
             }
         }
 
-        if (ingredientButtonList.isEmpty()) {
+        if (buttonList.isEmpty()) {
             StyledText(
                 modifier = Modifier.align(Center),
                 style = Typography.bodyMedium.copy(textAlign = TextAlign.Center),
@@ -478,7 +450,7 @@ private fun LazyGridItemScope.IngredientButton(
                     .aspectRatio(1f)
                     .animateItemPlacement()
                     .background(color = Grey0)
-                    .clickableWithoutRipple { uiEvent(OnClickAddIngredientButton) }
+                    .clickableWithoutRipple { }
                     .pointerInteropFilter {
                         startingXPosition = it.x
                         startingYPosition = it.y
@@ -487,7 +459,7 @@ private fun LazyGridItemScope.IngredientButton(
             },
             onTrue = { modifier ->
                 modifier.onGloballyPositioned {
-                    uiEvent(OnDragged(it.positionInRoot() + Offset(startingXPosition, startingYPosition)))
+                    uiEvent(OnButtonDragged(it.positionInRoot() + Offset(startingXPosition, startingYPosition)))
                 }
             },
         )
@@ -504,7 +476,7 @@ private fun LazyGridItemScope.IngredientButton(
 
 @Composable
 private fun BoxScope.TrashCan(
-    isRemovable: Boolean,
+    isButtonRemovable: Boolean,
     uiEvent: (UiEvent) -> Unit
 ) {
     Box(
@@ -513,7 +485,7 @@ private fun BoxScope.TrashCan(
             .padding(bottom = 24.dp)
             .clip(shape = RoundedCornerShape(12.dp))
             .size(48.dp)
-            .background(color = Color.Red.alpha(if (isRemovable) 100 else 50))
+            .background(color = Color.Red.alpha(if (isButtonRemovable) 100 else 50))
             .onGloballyPositioned {
                 uiEvent(
                     OnTrashCanMeasured(

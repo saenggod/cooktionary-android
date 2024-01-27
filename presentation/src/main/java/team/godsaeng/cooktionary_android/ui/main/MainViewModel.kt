@@ -4,6 +4,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -15,21 +16,15 @@ import kotlinx.coroutines.launch
 import org.burnoutcrew.reorderable.ItemPosition
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEffect
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEffect.ClearFocus
-import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEffect.RequestFocus
-import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEffect.ScrollToClickedDisplay
-import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEffect.ScrollToEndOfDisplayList
-import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnClearingFocusNeeded
-import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnClickAddIngredientButton
-import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnClickAddIngredientDisplay
-import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnClickRemoveIngredientDisplay
-import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnClickReset
-import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnDragged
-import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnDraggingEnded
-import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnIngredientDisplayFocused
-import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnIngredientTyped
-import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnOrderChanged
+import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnButtonDragged
+import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnButtonDraggingEnded
+import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnButtonOrderChanged
+import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnClickAddDisplay
+import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnClickDisplay
+import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnClickRemoveDisplay
+import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnDone
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnTrashCanMeasured
-import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnTypingIngredientEnded
+import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnTyped
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiState
 import javax.inject.Inject
 
@@ -38,135 +33,135 @@ class MainViewModel @Inject constructor() : ViewModel(), MainContract {
     private val _uiState = MutableStateFlow(UiState())
     override val uiState: StateFlow<UiState> = _uiState.asStateFlow()
 
-    private val _uiEffect = MutableSharedFlow<UiEffect>()
+    private val _uiEffect = MutableSharedFlow<UiEffect>(
+        replay = 1,
+        onBufferOverflow = BufferOverflow.DROP_OLDEST
+    )
     override val uiEffect: SharedFlow<UiEffect> = _uiEffect.asSharedFlow()
 
     override fun uiEvent(event: MainContract.UiEvent) = when (event) {
-        is OnIngredientTyped -> onIngredientTyped(event.typedString)
+        is OnClickAddDisplay -> onClickAddDisplay()
 
-        is OnIngredientDisplayFocused -> onIngredientDisplayFocused(
-            ingredient = event.ingredient,
-            index = event.index
+        is OnTyped -> onTyped(event.text)
+
+        is OnClickDisplay -> onClickDisplay(
+            index = event.index,
+            ingredient = event.ingredient
         )
 
-        is OnTypingIngredientEnded -> onTypingIngredientEnded(event.index)
+        is OnDone -> onDone(event.index)
 
-        is OnClickRemoveIngredientDisplay -> onClickRemoveIngredientDisplay(event.index)
+        is OnClickRemoveDisplay -> onClickRemoveDisplay(event.index)
 
-        is OnClickAddIngredientDisplay -> onClickAddIngredientDisplay(event.ingredient)
+        is OnButtonDragged -> onDragged(event.offset)
 
-        is OnDragged -> onDragged(event.offset)
+        is OnButtonDraggingEnded -> onDraggingEnded(event.removableItemIndex)
 
-        is OnDraggingEnded -> onDraggingEnded(event.removableItemIndex)
-
-        is OnOrderChanged -> onOrderChanged(
+        is OnButtonOrderChanged -> onOrderChanged(
             from = event.from,
             to = event.to
         )
 
         is OnTrashCanMeasured -> onTrashCanMeasured(
-            event.trashCanSize,
-            event.trashCanPosition
+            trashCanSize = event.trashCanSize,
+            trashCanPosition = event.trashCanPosition
         )
-
-        is OnClickAddIngredientButton -> onClickAddIngredientButton()
-
-        is OnClearingFocusNeeded -> onClearingFocusNeeded()
-
-        is OnClickReset -> onClickReset()
     }
 
-    private fun onIngredientTyped(typedString: String) {
-        _uiState.update {
-            it.copy(typedIngredient = typedString)
+    private fun onClickAddDisplay() {
+        val displayList = uiState.value.displayList
+        if (displayList.isNotEmpty() && displayList.last() == null) {
+
+        } else {
+            val newList = displayList.toMutableList().apply { add(null) }
+            val targetIndex = newList.lastIndex * 2
+
+            _uiState.update {
+                it.copy(
+                    displayList = newList,
+                    selectedDisplayIndex = targetIndex,
+                    typedText = ""
+                )
+            }
         }
     }
 
-    private fun onIngredientDisplayFocused(
-        ingredient: String?,
-        index: Int
+    private fun onTyped(text: String) {
+        _uiState.update {
+            it.copy(typedText = text)
+        }
+    }
+
+    private fun onClickDisplay(
+        index: Int,
+        ingredient: String?
     ) {
         _uiState.update {
-            it.copy(typedIngredient = ingredient ?: "")
-        }
-
-        viewModelScope.launch {
-            _uiEffect.emit(ScrollToClickedDisplay(index * 2))
+            it.copy(
+                selectedDisplayIndex = index,
+                typedText = ingredient.orEmpty()
+            )
         }
     }
 
-    private fun onTypingIngredientEnded(editedItemIndex: Int) {
+    private fun onDone(editedIndex: Int) {
         _uiState.update {
             it.copy(
-                typedIngredient = "",
-                ingredientDisplayList = it.ingredientDisplayList.toMutableList().mapIndexed { index, s ->
-                    if (editedItemIndex == index) {
-                        uiState.value.typedIngredient
+                displayList = it.displayList.mapIndexed { index, s ->
+                    if (editedIndex == index) {
+                        it.typedText
                     } else {
                         s
                     }
-                }
+                },
+                typedText = "",
+                selectedDisplayIndex = -1
             )
+        }
+
+        viewModelScope.launch {
+            _uiEffect.emit(ClearFocus)
         }
     }
 
-    private fun onClickRemoveIngredientDisplay(index: Int) {
+    private fun onClickRemoveDisplay(index: Int) {
         _uiState.update {
             it.copy(
-                typedIngredient = "",
-                addedIngredientCount = it.ingredientDisplayList.size - 1,
-                ingredientDisplayList = it.ingredientDisplayList.toMutableList().apply {
-                    removeAt(index)
-                }
+                displayList = it.displayList.toMutableList().apply { removeAt(index) },
+                selectedDisplayIndex = -1
             )
         }
-    }
 
-    private fun onClickAddIngredientDisplay(ingredient: String?) {
-        val ingredientDisplayList = uiState.value.ingredientDisplayList
-
-        if (ingredientDisplayList.last() == null) {
-
-        } else {
-            _uiState.update {
-                it.copy(
-                    addedIngredientCount = it.ingredientDisplayList.size + 1,
-                    ingredientDisplayList = ingredientDisplayList.toMutableList().apply { add(ingredient) }
-                )
-            }
-
-            viewModelScope.launch {
-                _uiEffect.emit(ScrollToEndOfDisplayList(ingredientDisplayList.size * 2))
-                _uiEffect.emit(RequestFocus)
-            }
+        viewModelScope.launch {
+            _uiEffect.emit(ClearFocus)
         }
     }
 
     private fun onDragged(offset: Offset) {
         _uiState.update {
             it.copy(
-                draggingPosition = offset,
-                isDragging = true
+                buttonDraggingPosition = offset,
+                isButtonDragging = true
             )
         }
 
-        val draggingXPosition = uiState.value.draggingPosition.x
-        val draggingYPosition = uiState.value.draggingPosition.y
+        val draggingXPosition = uiState.value.buttonDraggingPosition.x
+        val draggingYPosition = uiState.value.buttonDraggingPosition.y
         val trashCanPosition = uiState.value.trashCanPosition
         val trashCanSize = uiState.value.trashCanSize
         val trashCanXRange = trashCanPosition.x..trashCanPosition.x + trashCanSize
         val trashCanYRange = trashCanPosition.y..trashCanPosition.y + trashCanSize
 
         _uiState.update {
-            it.copy(isRemovable = draggingXPosition in trashCanXRange && draggingYPosition in trashCanYRange)
+            it.copy(isButtonRemovable = draggingXPosition in trashCanXRange && draggingYPosition in trashCanYRange)
         }
     }
 
     private fun onDraggingEnded(deletableItemIndex: Int) {
-        if (uiState.value.isRemovable) {
+        if (uiState.value.isButtonRemovable) {
             _uiState.update {
                 it.copy(
-                    ingredientButtonList = it.ingredientButtonList.toMutableList().apply {
+                    buttonList = it.buttonList.toMutableList().apply {
                         removeAt(deletableItemIndex)
                     }
                 )
@@ -175,9 +170,9 @@ class MainViewModel @Inject constructor() : ViewModel(), MainContract {
 
         _uiState.update {
             it.copy(
-                draggingPosition = Offset.Zero,
-                isDragging = false,
-                isRemovable = false
+                buttonDraggingPosition = Offset.Zero,
+                isButtonDragging = false,
+                isButtonRemovable = false
             )
         }
     }
@@ -187,7 +182,7 @@ class MainViewModel @Inject constructor() : ViewModel(), MainContract {
         to: ItemPosition
     ) {
         _uiState.update {
-            it.copy(ingredientButtonList = it.ingredientButtonList.toMutableList().apply { add(to.index, removeAt(from.index)) })
+            it.copy(buttonList = it.buttonList.toMutableList().apply { add(to.index, removeAt(from.index)) })
         }
     }
 
@@ -199,25 +194,6 @@ class MainViewModel @Inject constructor() : ViewModel(), MainContract {
             it.copy(
                 trashCanSize = trashCanSize,
                 trashCanPosition = trashCanPosition
-            )
-        }
-    }
-
-    private fun onClickAddIngredientButton() {
-
-    }
-
-    private fun onClearingFocusNeeded() {
-        viewModelScope.launch {
-            _uiEffect.emit(ClearFocus)
-        }
-    }
-
-    private fun onClickReset() {
-        _uiState.update {
-            it.copy(
-                addedIngredientCount = 1,
-                ingredientDisplayList = listOf(null)
             )
         }
     }
