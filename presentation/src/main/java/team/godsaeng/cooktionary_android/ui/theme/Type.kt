@@ -8,7 +8,7 @@ import androidx.compose.ui.unit.sp
 val Typography = Typography(
     titleLarge = TextStyle(
         fontFamily = pretendard,
-        fontWeight = FontWeight.SemiBold,
+        fontWeight = FontWeight.Bold,
         letterSpacing = 0.sp
     ),
     titleMedium = TextStyle(

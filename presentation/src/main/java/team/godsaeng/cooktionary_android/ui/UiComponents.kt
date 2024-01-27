@@ -57,35 +57,6 @@ fun StyledText(
 }
 
 @Composable
-fun RoundedCornerButton(
-    modifier: Modifier = Modifier,
-    stringId: Int,
-    textStyle: TextStyle,
-    fontSize: Int,
-    textColor: Color,
-    buttonColor: Color,
-    borderColor: Color
-) {
-    Box(
-        modifier = modifier
-            .clip(shape = RoundedCornerShape(12.dp))
-            .border(
-                width = 2.dp,
-                color = borderColor,
-                shape = RoundedCornerShape(12.dp)
-            )
-            .background(color = buttonColor)
-    ) {
-        StyledText(
-            stringId = stringId,
-            style = textStyle,
-            fontSize = fontSize,
-            color = textColor
-        )
-    }
-}
-
-@Composable
 inline fun TopBar(
     noinline onClickBackButton: (() -> Unit)? = null,
     noinline onClickProfileIcon: (() -> Unit)? = null,

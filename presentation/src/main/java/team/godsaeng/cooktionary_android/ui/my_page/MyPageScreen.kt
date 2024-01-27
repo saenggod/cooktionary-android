@@ -36,7 +36,7 @@ import team.godsaeng.cooktionary_android.ui.theme.ArrowBackgroundColor
 import team.godsaeng.cooktionary_android.ui.theme.ArrowTint
 import team.godsaeng.cooktionary_android.ui.theme.SubColor
 import team.godsaeng.cooktionary_android.ui.theme.Typography
-import team.godsaeng.cooktionary_android.ui.theme.UserSectionBackgroundColor
+import team.godsaeng.cooktionary_android.ui.theme.SectionBackgroundColor
 
 @Composable
 fun MyPageScreen(
@@ -80,7 +80,7 @@ private fun UserSection() {
             .clip(shape = RoundedCornerShape(10.dp))
             .fillMaxWidth()
             .height(80.dp)
-            .background(color = UserSectionBackgroundColor)
+            .background(color = SectionBackgroundColor)
             .border(
                 width = 1.dp,
                 color = Color.Black.alpha(3),
