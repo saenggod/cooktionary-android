@@ -22,4 +22,10 @@
     <!--    Recipe-->
     <string name="difficulty">난이도</string>
     <string name="minute">%d분</string>
+
+    <!--    MyPage-->
+    <string name="my_page">마이페이지</string>
+    <string name="saved_recipe_list">저장한 레시피 목록</string>
+    <string name="service_terms_of_use">서비스 이용약관</string>
+    <string name="privacy_policy">개인정보 처리방침</string>
 </resources>
