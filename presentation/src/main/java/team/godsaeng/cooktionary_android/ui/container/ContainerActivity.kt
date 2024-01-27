@@ -37,7 +37,7 @@ private fun ContainerScreen() {
     val navController = rememberNavController()
     NavHost(
         navController = navController,
-        startDestination = Destination.ON_BOARDING.route
+        startDestination = Destination.SEARCH_RESULT.route
     ) {
         with(navController) {
             navScreen(Destination.ON_BOARDING.route) { OnBoardingScreen(this) }
