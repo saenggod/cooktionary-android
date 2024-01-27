@@ -160,21 +160,21 @@ private fun Recipe() {
             ) {
                 StyledText(
                     text = "맛있는 계란 볶음밥",
-                    style = Typography.titleLarge,
+                    style = Typography.bodyLarge,
                     fontSize = 18,
                     color = Color.Black
                 )
 
                 StyledText(
                     text = "${stringResource(id = R.string.cooking_time)}",
-                    style = Typography.titleLarge,
+                    style = Typography.bodyLarge,
                     fontSize = 13,
                     color = TextColorGrey3
                 )
 
                 StyledText(
                     text = "즉시 조리 가능",
-                    style = Typography.titleLarge,
+                    style = Typography.bodyLarge,
                     fontSize = 13,
                     color = PointColor
                 )

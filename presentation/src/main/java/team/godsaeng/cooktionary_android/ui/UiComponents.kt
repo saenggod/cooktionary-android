@@ -159,7 +159,7 @@ fun SimpleTextField(
             modifier = modifier,
             value = value,
             onValueChange = onValueChange,
-            textStyle = Typography.labelMedium.copy(
+            textStyle = Typography.bodyMedium.copy(
                 color = textColor,
                 textAlign = TextAlign.Center
             ),
