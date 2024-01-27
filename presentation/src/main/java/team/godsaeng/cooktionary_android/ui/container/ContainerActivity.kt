@@ -12,11 +12,12 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import dagger.hilt.android.AndroidEntryPoint
-import team.godsaeng.cooktionary_android.ui.RecipeScreen
 import team.godsaeng.cooktionary_android.ui.main.MainScreen
 import team.godsaeng.cooktionary_android.ui.my_info.MyInfoScreen
 import team.godsaeng.cooktionary_android.ui.my_page.MyPageScreen
 import team.godsaeng.cooktionary_android.ui.on_boarding.OnBoardingScreen
+import team.godsaeng.cooktionary_android.ui.recipe.RecipeScreen
+import team.godsaeng.cooktionary_android.ui.secession.SecessionScreen
 import team.godsaeng.cooktionary_android.ui.theme.CooktionaryandroidTheme
 
 @AndroidEntryPoint
@@ -45,6 +46,7 @@ private fun ContainerScreen() {
             navScreen(Destination.RECIPE.route) { RecipeScreen(this) }
             navScreen(Destination.MY_PAGE.route) { MyPageScreen(this) }
             navScreen(Destination.MY_INFO.route) { MyInfoScreen(this) }
+            navScreen(Destination.SECESSION.route) { SecessionScreen(this) }
         }
     }
 }

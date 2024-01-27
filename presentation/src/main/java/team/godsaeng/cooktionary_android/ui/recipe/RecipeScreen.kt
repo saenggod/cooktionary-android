@@ -1,4 +1,4 @@
-package team.godsaeng.cooktionary_android.ui
+package team.godsaeng.cooktionary_android.ui.recipe
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
@@ -25,6 +25,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import team.godsaeng.cooktionary_android.R
+import team.godsaeng.cooktionary_android.ui.ScrapButton
+import team.godsaeng.cooktionary_android.ui.StyledText
+import team.godsaeng.cooktionary_android.ui.TopBar
 import team.godsaeng.cooktionary_android.ui.theme.PointColor
 import team.godsaeng.cooktionary_android.ui.theme.RecipeDetailTextColor
 import team.godsaeng.cooktionary_android.ui.theme.Typography
