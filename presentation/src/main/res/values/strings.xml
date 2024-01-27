@@ -18,4 +18,8 @@
     <string name="result_desc">위 레시피는 chat-gpt의 검색결과를 기반으로 제공됩니다.</string>
     <string name="cooking_time">조리시간</string>
     <string name="cookable_right_now">즉시 조리 가능</string>
+
+    <!--    Recipe-->
+    <string name="difficulty">난이도</string>
+    <string name="minute">%d분</string>
 </resources>
