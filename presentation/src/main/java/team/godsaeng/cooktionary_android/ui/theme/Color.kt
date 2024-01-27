@@ -19,6 +19,9 @@ val TextColorGrey4 = Color(0xFF767676)
 val AddedIngredientDescColor = Color(0xFFABABAB)
 val RecipeDetailTextColor = Color(0xFF6B6B6B)
 val ImagePlaceHolderColor = Color(0xFFEEEEEE)
+val UserSectionBackgroundColor = Color(0xFFF7F9FD)
+val ArrowTint = Color(0xFF888C96)
+val ArrowBackgroundColor = Color(0xFFEDF2F9)
 
 @Composable
 fun textFieldSelectionColors() = TextSelectionColors(
