@@ -360,7 +360,7 @@ private fun FunctionButtonRow(
             StyledText(
                 modifier = Modifier.align(Center),
                 stringId = R.string.search_recipe,
-                style = Typography.titleLarge,
+                style = Typography.bodyLarge,
                 fontSize = 14,
                 color = Color.White
             )

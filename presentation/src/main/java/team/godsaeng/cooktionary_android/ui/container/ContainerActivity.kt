@@ -14,6 +14,7 @@ import androidx.navigation.compose.rememberNavController
 import dagger.hilt.android.AndroidEntryPoint
 import team.godsaeng.cooktionary_android.ui.RecipeScreen
 import team.godsaeng.cooktionary_android.ui.main.MainScreen
+import team.godsaeng.cooktionary_android.ui.my_info.MyInfoScreen
 import team.godsaeng.cooktionary_android.ui.my_page.MyPageScreen
 import team.godsaeng.cooktionary_android.ui.on_boarding.OnBoardingScreen
 import team.godsaeng.cooktionary_android.ui.theme.CooktionaryandroidTheme
@@ -35,7 +36,7 @@ private fun ContainerScreen() {
     val navController = rememberNavController()
     NavHost(
         navController = navController,
-        startDestination = Destination.MY_PAGE.route
+        startDestination = Destination.ON_BOARDING.route
     ) {
         with(navController) {
             navScreen(Destination.ON_BOARDING.route) { OnBoardingScreen(this) }
@@ -43,6 +44,7 @@ private fun ContainerScreen() {
             navScreen(Destination.SEARCH_RESULT.route) { SearchResultScreen(this) }
             navScreen(Destination.RECIPE.route) { RecipeScreen(this) }
             navScreen(Destination.MY_PAGE.route) { MyPageScreen(this) }
+            navScreen(Destination.MY_INFO.route) { MyInfoScreen(this) }
         }
     }
 }

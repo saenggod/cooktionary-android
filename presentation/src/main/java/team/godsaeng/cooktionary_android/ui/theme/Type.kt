@@ -18,7 +18,7 @@ val Typography = Typography(
     ),
     bodyLarge = TextStyle(
         fontFamily = pretendard,
-        fontWeight = FontWeight.Medium,
+        fontWeight = FontWeight.SemiBold,
         letterSpacing = 0.sp
     ),
     bodyMedium = TextStyle(

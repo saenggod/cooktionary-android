@@ -96,7 +96,7 @@ private fun UserSection() {
         ) {
             StyledText(
                 text = "이름",
-                style = Typography.titleLarge,
+                style = Typography.bodyLarge,
                 fontSize = 18
             )
 
@@ -138,7 +138,7 @@ private fun MyPageButton(
     ) {
         StyledText(
             stringId = stringId,
-            style = Typography.labelMedium,
+            style = Typography.bodySmall,
             fontSize = 16
         )
 

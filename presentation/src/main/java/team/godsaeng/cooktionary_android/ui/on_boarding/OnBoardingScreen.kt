@@ -130,7 +130,7 @@ private fun BoxScope.LogoSection() {
 
         StyledText(
             stringId = R.string.app_desc,
-            style = Typography.titleLarge,
+            style = Typography.bodyLarge,
             fontSize = 15
         )
     }
