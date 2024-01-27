@@ -175,3 +175,15 @@ fun SimpleTextField(
         )
     }
 }
+
+@Composable
+inline fun ScrapButton(
+    modifier: Modifier = Modifier,
+    crossinline onClick: () -> Unit
+) {
+    Image(
+        modifier = modifier.clickableWithoutRipple { onClick() },
+        painter = painterResource(id = R.drawable.ic_scrap),
+        contentDescription = null
+    )
+}
