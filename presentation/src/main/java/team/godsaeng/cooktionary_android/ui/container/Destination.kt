@@ -2,8 +2,10 @@ package team.godsaeng.cooktionary_android.ui.container
 
 enum class Destination(val route: String) {
     ON_BOARDING(route = ROUTE_ON_BOARDING),
-    MAIN(route = ROUTE_MAIN)
+    MAIN(route = ROUTE_MAIN),
+    SEARCH_RESULT(route = ROUTE_SEARCH_RESULT)
 }
 
 const val ROUTE_ON_BOARDING = "on_boarding"
 const val ROUTE_MAIN = "main"
+const val ROUTE_SEARCH_RESULT = "search_result"

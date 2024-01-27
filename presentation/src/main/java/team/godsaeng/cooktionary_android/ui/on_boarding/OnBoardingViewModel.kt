@@ -3,6 +3,8 @@ package team.godsaeng.cooktionary_android.ui.on_boarding
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -30,7 +32,10 @@ class OnBoardingViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(UiState())
     override val uiState: StateFlow<UiState> = _uiState.asStateFlow()
 
-    private val _uiEffect = MutableSharedFlow<UiEffect>()
+    private val _uiEffect = MutableSharedFlow<UiEffect>(
+        replay = 1,
+        onBufferOverflow = BufferOverflow.DROP_OLDEST
+    )
     override val uiEffect: SharedFlow<UiEffect> = _uiEffect.asSharedFlow()
 
     override fun uiEvent(event: OnBoardingContract.UiEvent) = when (event) {
@@ -46,6 +51,12 @@ class OnBoardingViewModel @Inject constructor(
         )
 
         is OnFailureLogin -> onFailureLogin()
+    }
+
+    private val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
+        when(throwable) {
+
+        }
     }
 
     private fun onClickKakaoLogin() {
@@ -70,7 +81,7 @@ class OnBoardingViewModel @Inject constructor(
         platform: String,
         token: String
     ) {
-        viewModelScope.launch {
+        viewModelScope.launch(exceptionHandler) {
             verifyUserUseCase(
                 platform = platform,
                 token = token

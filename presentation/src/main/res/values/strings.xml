@@ -12,4 +12,10 @@
     <string name="added_ingredient_count">%d개의 재료</string>
     <string name="search_recipe">레시피 검색</string>
     <string name="no_ingredient_desc">더하기 버튼을 통해\n내가 가지고 있는 재료들을 추가해보세요</string>
+
+    <!--    SearchResult-->
+    <string name="result_count">%d개의 레시피</string>
+    <string name="result_desc">위 레시피는 chat-gpt의 검색결과를 기반으로 제공됩니다.</string>
+    <string name="cooking_time">조리시간</string>
+    <string name="cookable_right_now">즉시 조리 가능</string>
 </resources>

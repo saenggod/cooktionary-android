@@ -1,5 +1,6 @@
 package team.godsaeng.cooktionary_android.ui.container
 
+import SearchResultScreen
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -36,6 +37,7 @@ private fun ContainerScreen() {
     ) {
         navScreen(Destination.ON_BOARDING.route) { OnBoardingScreen(navController) }
         navScreen(Destination.MAIN.route) { MainScreen(navController) }
+        navScreen(Destination.SEARCH_RESULT.route) { SearchResultScreen(navController) }
     }
 }
 
