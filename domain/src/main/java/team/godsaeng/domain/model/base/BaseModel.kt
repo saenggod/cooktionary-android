@@ -1,5 +1,5 @@
 package team.godsaeng.domain.model.base
 
-import android.os.Parcelable
+import java.io.Serializable
 
-interface BaseModel : Parcelable
+interface BaseModel : Serializable
