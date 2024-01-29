@@ -1,5 +1,5 @@
 package team.godsaeng.data.base
 
-import android.os.Parcelable
+import java.io.Serializable
 
-interface BaseResponse : Parcelable
+interface BaseResponse : Serializable

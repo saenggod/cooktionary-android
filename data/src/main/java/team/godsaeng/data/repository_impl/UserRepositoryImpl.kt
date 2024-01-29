@@ -10,12 +10,10 @@ class UserRepositoryImpl @Inject constructor(private val cooktionaryApi: Cooktio
         platform: String,
         token: String
     ) {
-        println(
-            cooktionaryApi.postVerification(
-                VerificationRequest(
-                    platform = platform,
-                    token = token
-                )
+        cooktionaryApi.postVerification(
+            VerificationRequest(
+                platform = platform,
+                token = token
             )
         )
     }
