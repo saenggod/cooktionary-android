@@ -1,6 +1,8 @@
 package team.godsaeng.domain.model.use_case
 
 import dagger.Reusable
+import team.godsaeng.domain.model.model.ResponseState
+import team.godsaeng.domain.model.model.verification.Verification
 import team.godsaeng.domain.model.repository.UserRepository
 import javax.inject.Inject
 
@@ -9,10 +11,8 @@ class VerifyUserUseCase @Inject constructor(private val repository: UserReposito
     suspend operator fun invoke(
         platform: String,
         token: String
-    ) {
-        repository.sendVerification(
-            platform = platform,
-            token = token
-        )
-    }
+    ): ResponseState<Verification> = repository.sendVerification(
+        platform = platform,
+        token = token
+    )
 }

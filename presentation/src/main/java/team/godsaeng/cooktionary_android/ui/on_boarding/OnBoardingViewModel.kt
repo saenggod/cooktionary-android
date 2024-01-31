@@ -19,9 +19,11 @@ import team.godsaeng.cooktionary_android.ui.on_boarding.OnBoardingContract.UiEff
 import team.godsaeng.cooktionary_android.ui.on_boarding.OnBoardingContract.UiEvent.OnClickGoogleLogin
 import team.godsaeng.cooktionary_android.ui.on_boarding.OnBoardingContract.UiEvent.OnClickKakaoLogin
 import team.godsaeng.cooktionary_android.ui.on_boarding.OnBoardingContract.UiEvent.OnClickSkip
-import team.godsaeng.cooktionary_android.ui.on_boarding.OnBoardingContract.UiEvent.OnFailureLogin
-import team.godsaeng.cooktionary_android.ui.on_boarding.OnBoardingContract.UiEvent.OnSuccessLogin
+import team.godsaeng.cooktionary_android.ui.on_boarding.OnBoardingContract.UiEvent.OnFailureSocialLogin
+import team.godsaeng.cooktionary_android.ui.on_boarding.OnBoardingContract.UiEvent.OnSuccessSocialLogin
 import team.godsaeng.cooktionary_android.ui.on_boarding.OnBoardingContract.UiState
+import team.godsaeng.cooktionary_android.util.UserInfo
+import team.godsaeng.domain.model.model.verification.Verification
 import team.godsaeng.domain.model.use_case.VerifyUserUseCase
 import javax.inject.Inject
 
@@ -45,16 +47,16 @@ class OnBoardingViewModel @Inject constructor(
 
         is OnClickSkip -> onClickSkip()
 
-        is OnSuccessLogin -> onSuccessLogin(
+        is OnSuccessSocialLogin -> onSuccessSocialLogin(
             platform = event.platform,
             token = event.token
         )
 
-        is OnFailureLogin -> onFailureLogin()
+        is OnFailureSocialLogin -> onFailureSocialLogin()
     }
 
     private val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
-        when(throwable) {
+        when (throwable) {
 
         }
     }
@@ -77,7 +79,7 @@ class OnBoardingViewModel @Inject constructor(
         }
     }
 
-    private fun onSuccessLogin(
+    private fun onSuccessSocialLogin(
         platform: String,
         token: String
     ) {
@@ -85,11 +87,36 @@ class OnBoardingViewModel @Inject constructor(
             verifyUserUseCase(
                 platform = platform,
                 token = token
+            ).handle(
+                onSuccess = {
+                    onSuccessServiceLogin(it)
+                },
+                onFailure = { error ->
+                    when (error.code) {
+                        // todo: handle error with code
+                    }
+                }
             )
         }
     }
 
-    private fun onFailureLogin() {
+    private fun onFailureSocialLogin() {
+
+    }
+
+    private fun onSuccessServiceLogin(verification: Verification) {
+        UserInfo.run {
+            isLoggedIn = true
+            name = verification.name
+            email = verification.email
+        }
+
+        viewModelScope.launch {
+            _uiEffect.emit(GoToMain)
+        }
+    }
+
+    private fun onFailureServiceLogin() {
 
     }
 }

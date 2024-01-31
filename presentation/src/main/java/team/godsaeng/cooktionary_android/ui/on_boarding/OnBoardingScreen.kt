@@ -35,6 +35,8 @@ import team.godsaeng.cooktionary_android.ui.StyledText
 import team.godsaeng.cooktionary_android.ui.base.use
 import team.godsaeng.cooktionary_android.ui.clickableWithoutRipple
 import team.godsaeng.cooktionary_android.ui.container.ROUTE_MAIN
+import team.godsaeng.cooktionary_android.ui.container.ROUTE_ON_BOARDING
+import team.godsaeng.cooktionary_android.ui.container.buildInclusivePopUpOption
 import team.godsaeng.cooktionary_android.ui.getContext
 import team.godsaeng.cooktionary_android.ui.on_boarding.OnBoardingContract.UiEffect.GoToMain
 import team.godsaeng.cooktionary_android.ui.on_boarding.OnBoardingContract.UiEffect.LoginWithGoogle
@@ -43,8 +45,8 @@ import team.godsaeng.cooktionary_android.ui.on_boarding.OnBoardingContract.UiEve
 import team.godsaeng.cooktionary_android.ui.on_boarding.OnBoardingContract.UiEvent.OnClickGoogleLogin
 import team.godsaeng.cooktionary_android.ui.on_boarding.OnBoardingContract.UiEvent.OnClickKakaoLogin
 import team.godsaeng.cooktionary_android.ui.on_boarding.OnBoardingContract.UiEvent.OnClickSkip
-import team.godsaeng.cooktionary_android.ui.on_boarding.OnBoardingContract.UiEvent.OnFailureLogin
-import team.godsaeng.cooktionary_android.ui.on_boarding.OnBoardingContract.UiEvent.OnSuccessLogin
+import team.godsaeng.cooktionary_android.ui.on_boarding.OnBoardingContract.UiEvent.OnFailureSocialLogin
+import team.godsaeng.cooktionary_android.ui.on_boarding.OnBoardingContract.UiEvent.OnSuccessSocialLogin
 import team.godsaeng.cooktionary_android.ui.theme.TextColorGrey4
 import team.godsaeng.cooktionary_android.ui.theme.Typography
 
@@ -62,10 +64,15 @@ fun OnBoardingScreen(
         SocialLoginManager(
             context = context,
             onSuccess = { platform, token ->
-                uiEvent(OnSuccessLogin(platform, token))
+                uiEvent(
+                    OnSuccessSocialLogin(
+                        platform = platform,
+                        token = token
+                    )
+                )
             },
             onFailure = {
-                uiEvent(OnFailureLogin)
+                uiEvent(OnFailureSocialLogin)
             }
         )
     }.also {
@@ -79,7 +86,10 @@ fun OnBoardingScreen(
 
                 is LoginWithGoogle -> socialLoginManager.launchGoogleLoginLauncher()
 
-                is GoToMain -> navController.navigate(ROUTE_MAIN)
+                is GoToMain -> navController.navigate(
+                    route = ROUTE_MAIN,
+                    navOptions = buildInclusivePopUpOption(ROUTE_ON_BOARDING)
+                )
             }
         }
     }
