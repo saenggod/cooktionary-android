@@ -1,17 +1,22 @@
 package team.godsaeng.cooktionary_android.di.network
 
+import com.google.gson.Gson
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import team.godsaeng.cooktionary_android.BuildConfig
 import team.godsaeng.data.remote.CooktionaryApi
+import team.godsaeng.domain.model.model.CTError
+import team.godsaeng.domain.model.model.CTException
 import java.util.concurrent.TimeUnit
 import javax.inject.Singleton
+
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -20,10 +25,12 @@ object NetworkModule {
 
     @Singleton
     @Provides
-    fun provideHttpClient(): OkHttpClient {
+    fun provideHttpClient(
+        interceptor: Interceptor
+    ): OkHttpClient {
         val client = OkHttpClient
             .Builder()
-
+            .addInterceptor(interceptor)
             .readTimeout(10, TimeUnit.SECONDS)
             .writeTimeout(10, TimeUnit.SECONDS)
             .connectTimeout(10, TimeUnit.SECONDS)
@@ -39,7 +46,32 @@ object NetworkModule {
 
     @Singleton
     @Provides
-    fun provideRetrofit(okHttpClient: OkHttpClient): Retrofit {
+    fun provideErrorInterceptor(
+        gson: Gson
+    ): Interceptor = Interceptor { chain ->
+        try {
+            val response = chain.proceed(chain.request())
+            if (response.isSuccessful && response.body != null) {
+                return@Interceptor response
+            } else {
+                val errorString = response.body?.string()
+                val errorResponse = gson.fromJson(errorString, CTError::class.java)
+                throw CTException(errorResponse)
+            }
+        } catch (exception: Exception) {
+            throw CTException(CTError(-1, exception.message ?: "UNKNOWN_ERROR"))
+        }
+    }
+
+    @Singleton
+    @Provides
+    fun provideGson(): Gson = Gson()
+
+    @Singleton
+    @Provides
+    fun provideRetrofit(
+        okHttpClient: OkHttpClient
+    ): Retrofit {
         return Retrofit.Builder()
             .baseUrl(BASE_URL)
             .client(okHttpClient)

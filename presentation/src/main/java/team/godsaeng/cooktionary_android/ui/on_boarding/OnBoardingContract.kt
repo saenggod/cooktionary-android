@@ -14,12 +14,12 @@ sealed interface OnBoardingContract : BaseContract<OnBoardingContract.UiState, O
 
         data object OnClickSkip : UiEvent
 
-        data class OnSuccessLogin(
+        data class OnSuccessSocialLogin(
             val platform: String,
             val token: String
         ) : UiEvent
 
-        data object OnFailureLogin : UiEvent
+        data object OnFailureSocialLogin : UiEvent
     }
 
     sealed interface UiEffect {

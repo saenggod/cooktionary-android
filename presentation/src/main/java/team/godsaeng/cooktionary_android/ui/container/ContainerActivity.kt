@@ -8,6 +8,7 @@ import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavGraphBuilder
+import androidx.navigation.NavOptions
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -37,7 +38,7 @@ private fun ContainerScreen() {
     val navController = rememberNavController()
     NavHost(
         navController = navController,
-        startDestination = Destination.SEARCH_RESULT.route
+        startDestination = Destination.ON_BOARDING.route
     ) {
         with(navController) {
             navScreen(Destination.ON_BOARDING.route) { OnBoardingScreen(this) }
@@ -63,3 +64,10 @@ fun NavGraphBuilder.navScreen(
         popExitTransition = { ExitTransition.None }
     ) { content() }
 }
+
+fun buildInclusivePopUpOption(route: String): NavOptions = NavOptions.Builder()
+    .setPopUpTo(
+        route = route,
+        inclusive = true
+    )
+    .build()
