@@ -22,15 +22,18 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object NetworkModule {
     private const val BASE_URL = "http://3.34.159.0/api/v1/"
+    var accessToken = ""
 
     @Singleton
     @Provides
     fun provideHttpClient(
-        interceptor: Interceptor
+        @ErrorInterceptor errorInterceptor: Interceptor,
+        @AccessTokenInterceptor accessTokenInterceptor: Interceptor
     ): OkHttpClient {
         val client = OkHttpClient
             .Builder()
-            .addInterceptor(interceptor)
+            .addInterceptor(errorInterceptor)
+            .addInterceptor(accessTokenInterceptor)
             .readTimeout(10, TimeUnit.SECONDS)
             .writeTimeout(10, TimeUnit.SECONDS)
             .connectTimeout(10, TimeUnit.SECONDS)
@@ -44,6 +47,7 @@ object NetworkModule {
         return client.build()
     }
 
+    @ErrorInterceptor
     @Singleton
     @Provides
     fun provideErrorInterceptor(
@@ -61,6 +65,22 @@ object NetworkModule {
         } catch (exception: Exception) {
             throw CTException(CTError(-1, exception.message ?: "UNKNOWN_ERROR"))
         }
+    }
+
+    @AccessTokenInterceptor
+    @Singleton
+    @Provides
+    fun provideAccessTokenInterceptor(): Interceptor = Interceptor { chain ->
+        if (accessToken.isNotEmpty()) {
+            val newRequest = chain.request()
+                .newBuilder()
+                .addHeader("Authorization", accessToken)
+                .build()
+
+            return@Interceptor chain.proceed(newRequest)
+        }
+
+        return@Interceptor chain.proceed(chain.request())
     }
 
     @Singleton
