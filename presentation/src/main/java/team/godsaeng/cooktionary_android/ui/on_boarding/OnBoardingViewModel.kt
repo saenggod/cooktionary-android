@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import team.godsaeng.cooktionary_android.di.network.NetworkModule
 import team.godsaeng.cooktionary_android.ui.on_boarding.OnBoardingContract.UiEffect
 import team.godsaeng.cooktionary_android.ui.on_boarding.OnBoardingContract.UiEffect.GoToMain
 import team.godsaeng.cooktionary_android.ui.on_boarding.OnBoardingContract.UiEffect.LoginWithGoogle
@@ -110,6 +111,8 @@ class OnBoardingViewModel @Inject constructor(
             name = verification.name
             email = verification.email
         }
+
+        NetworkModule.accessToken = verification.accessToken
 
         viewModelScope.launch {
             _uiEffect.emit(GoToMain)
