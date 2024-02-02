@@ -10,7 +10,7 @@ interface UserRepository {
         token: String
     ): ResponseState<Verification>
 
-    suspend fun storeOAuthPlatform(data: String): Boolean
+    suspend fun storeOAuthPlatform(data: String)
 
     fun loadStoredOAuthPlatform(): Flow<String?>
 }

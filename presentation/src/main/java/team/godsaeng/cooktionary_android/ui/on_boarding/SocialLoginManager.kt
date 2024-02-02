@@ -65,7 +65,7 @@ class SocialLoginManager(
 
     companion object {
         private const val GOOGLE_CLIENT_ID = "1008080216028-jk0o1bcv13q8q99b9ugoi59jqqai2bbd.apps.googleusercontent.com"
-        private const val PLATFORM_KAKAO = "kakao"
-        private const val PLATFORM_GOOGLE = "google"
+        const val PLATFORM_KAKAO = "kakao"
+        const val PLATFORM_GOOGLE = "google"
     }
 }

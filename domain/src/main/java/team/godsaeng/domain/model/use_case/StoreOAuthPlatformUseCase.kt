@@ -6,5 +6,5 @@ import javax.inject.Inject
 
 @Reusable
 class StoreOAuthPlatformUseCase @Inject constructor(private val repository: UserRepository) {
-    suspend operator fun invoke(data: String): Boolean = repository.storeOAuthPlatform(data)
+    suspend operator fun invoke(data: String) = repository.storeOAuthPlatform(data)
 }

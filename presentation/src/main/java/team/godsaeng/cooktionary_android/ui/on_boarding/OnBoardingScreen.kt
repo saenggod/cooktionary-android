@@ -46,6 +46,7 @@ import team.godsaeng.cooktionary_android.ui.on_boarding.OnBoardingContract.UiEve
 import team.godsaeng.cooktionary_android.ui.on_boarding.OnBoardingContract.UiEvent.OnClickKakaoLogin
 import team.godsaeng.cooktionary_android.ui.on_boarding.OnBoardingContract.UiEvent.OnClickSkip
 import team.godsaeng.cooktionary_android.ui.on_boarding.OnBoardingContract.UiEvent.OnFailureSocialLogin
+import team.godsaeng.cooktionary_android.ui.on_boarding.OnBoardingContract.UiEvent.OnStarted
 import team.godsaeng.cooktionary_android.ui.on_boarding.OnBoardingContract.UiEvent.OnSuccessSocialLogin
 import team.godsaeng.cooktionary_android.ui.theme.TextColorGrey4
 import team.godsaeng.cooktionary_android.ui.theme.Typography
@@ -79,6 +80,10 @@ fun OnBoardingScreen(
         it.InitGoogleLoginLauncher()
     }
 
+    LaunchedEffect(Unit) {
+        uiEvent(OnStarted)
+    }
+
     LaunchedEffect(uiEffect) {
         uiEffect.collect { uiEffect ->
             when (uiEffect) {
@@ -103,7 +108,9 @@ fun OnBoardingScreen(
 
         LogoSection()
 
-        LoginSection(uiEvent)
+        if (uiState.autoLoginFailed) {
+            LoginSection(uiEvent)
+        }
     }
 }
 

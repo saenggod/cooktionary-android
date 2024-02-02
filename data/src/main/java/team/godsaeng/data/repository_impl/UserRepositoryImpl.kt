@@ -39,17 +39,11 @@ class UserRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun storeOAuthPlatform(data: String): Boolean {
-        return try {
-            dataStoreManager.storeStringData(
-                key = DataStoreManager.KEY_OAUTH_PLATFORM,
-                data = data
-            )
-
-            true
-        } catch (e: Exception) {
-            false
-        }
+    override suspend fun storeOAuthPlatform(data: String) {
+        dataStoreManager.storeStringData(
+            key = DataStoreManager.KEY_OAUTH_PLATFORM,
+            data = data
+        )
     }
 
     override fun loadStoredOAuthPlatform(): Flow<String?> = dataStoreManager.loadStringData(DataStoreManager.KEY_OAUTH_PLATFORM)
