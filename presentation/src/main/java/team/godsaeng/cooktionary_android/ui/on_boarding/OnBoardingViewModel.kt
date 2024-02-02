@@ -4,7 +4,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -30,6 +29,7 @@ import team.godsaeng.cooktionary_android.ui.on_boarding.OnBoardingContract.UiEve
 import team.godsaeng.cooktionary_android.ui.on_boarding.OnBoardingContract.UiEvent.OnSuccessSocialLogin
 import team.godsaeng.cooktionary_android.ui.on_boarding.OnBoardingContract.UiState
 import team.godsaeng.cooktionary_android.util.UserInfo
+import team.godsaeng.cooktionary_android.util.getExceptionHandler
 import team.godsaeng.domain.model.model.verification.Verification
 import team.godsaeng.domain.model.use_case.LoadStoredOAuthPlatformUseCase
 import team.godsaeng.domain.model.use_case.StoreOAuthPlatformUseCase
@@ -69,11 +69,9 @@ class OnBoardingViewModel @Inject constructor(
         is OnFailureSocialLogin -> onFailureSocialLogin()
     }
 
-    private val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
-        when (throwable) {
-
-        }
-    }
+    private val exceptionHandler = getExceptionHandler(
+        onUnknownHostException = {}
+    )
 
     private fun onStarted() {
         viewModelScope.launch {

@@ -2,7 +2,6 @@ package team.godsaeng.cooktionary_android.ui.search_result
 
 import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -11,6 +10,7 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import team.godsaeng.cooktionary_android.ui.search_result.SearchResultContract.UiEffect
 import team.godsaeng.cooktionary_android.ui.search_result.SearchResultContract.UiState
+import team.godsaeng.cooktionary_android.util.getExceptionHandler
 import javax.inject.Inject
 
 @HiltViewModel
@@ -25,11 +25,7 @@ class SearchResultViewModel @Inject constructor() : ViewModel(), SearchResultCon
         else -> Unit
     }
 
-    private val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
-        when (throwable) {
-
-        }
-    }
-
-
+    private val exceptionHandler = getExceptionHandler(
+        onUnknownHostException = {}
+    )
 }
