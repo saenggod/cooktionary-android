@@ -1,4 +1,4 @@
-package team.godsaeng.data.model.request
+package team.godsaeng.data.model.request.verification
 
 import com.google.gson.annotations.SerializedName
 

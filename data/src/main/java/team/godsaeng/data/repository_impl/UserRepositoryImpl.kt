@@ -1,8 +1,10 @@
 package team.godsaeng.data.repository_impl
 
 import kotlinx.coroutines.flow.Flow
+import team.godsaeng.data.BuildConfig
 import team.godsaeng.data.local.DataStoreManager
-import team.godsaeng.data.model.request.VerificationRequest
+import team.godsaeng.data.model.request.google_account.GoogleAccessTokenRequest
+import team.godsaeng.data.model.request.verification.VerificationRequest
 import team.godsaeng.data.model.response.verification.VerificationResponse.Companion.toDomainModel
 import team.godsaeng.data.remote.CooktionaryApi
 import team.godsaeng.domain.model.model.CTError
@@ -16,6 +18,18 @@ class UserRepositoryImpl @Inject constructor(
     private val cooktionaryApi: CooktionaryApi,
     private val dataStoreManager: DataStoreManager
 ) : UserRepository {
+    override suspend fun fetchGoogleAccessToken(
+        clientId: String,
+        serverAuthCode: String
+    ): String = cooktionaryApi.postGoogleAccountInfo(
+        url = GOOGLE_ACCOUNT_INFO_REQUEST_URL,
+        googleAccessTokenRequest = GoogleAccessTokenRequest(
+            clientId = clientId,
+            clientSecret = BuildConfig.CLIENT_SECRET,
+            serverAuthCode = serverAuthCode
+        )
+    ).accessToken
+
     override suspend fun sendVerification(
         platform: String,
         token: String
@@ -47,4 +61,8 @@ class UserRepositoryImpl @Inject constructor(
     }
 
     override fun loadStoredOAuthPlatform(): Flow<String?> = dataStoreManager.loadStringData(DataStoreManager.KEY_OAUTH_PLATFORM)
+
+    companion object {
+        private const val GOOGLE_ACCOUNT_INFO_REQUEST_URL = "https://oauth2.googleapis.com/token"
+    }
 }

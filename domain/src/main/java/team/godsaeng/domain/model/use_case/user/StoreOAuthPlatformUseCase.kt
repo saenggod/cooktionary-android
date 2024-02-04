@@ -1,4 +1,4 @@
-package team.godsaeng.domain.model.use_case
+package team.godsaeng.domain.model.use_case.user
 
 import dagger.Reusable
 import team.godsaeng.domain.model.repository.UserRepository
