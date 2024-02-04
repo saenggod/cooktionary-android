@@ -19,7 +19,7 @@ sealed interface OnBoardingContract : BaseContract<OnBoardingContract.UiState, O
 
         data class OnSuccessSocialLogin(
             val platform: String,
-            val token: String
+            val data: String
         ) : UiEvent
 
         data object OnFailureSocialLogin : UiEvent

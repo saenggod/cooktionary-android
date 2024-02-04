@@ -1,3 +1,5 @@
+import com.android.build.gradle.internal.cxx.configure.gradleLocalProperties
+
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.lang)
@@ -11,7 +13,7 @@ android {
 
     defaultConfig {
         minSdk = 26
-
+        buildConfigField("String", "CLIENT_SECRET", gradleLocalProperties(rootDir).getProperty("client_secret"))
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
     }
@@ -28,6 +30,9 @@ android {
     }
     kotlinOptions {
         jvmTarget = "1.8"
+    }
+    buildFeatures {
+        buildConfig = true
     }
     tasks.withType<Test>().configureEach {
         useJUnitPlatform()

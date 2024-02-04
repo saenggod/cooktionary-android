@@ -64,11 +64,11 @@ fun OnBoardingScreen(
     val socialLoginManager = remember {
         SocialLoginManager(
             context = context,
-            onSuccess = { platform, token ->
+            onSuccess = { platform, data ->
                 uiEvent(
                     OnSuccessSocialLogin(
                         platform = platform,
-                        token = token
+                        data = data
                     )
                 )
             },

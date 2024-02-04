@@ -28,17 +28,21 @@ import team.godsaeng.cooktionary_android.ui.on_boarding.OnBoardingContract.UiEve
 import team.godsaeng.cooktionary_android.ui.on_boarding.OnBoardingContract.UiEvent.OnStarted
 import team.godsaeng.cooktionary_android.ui.on_boarding.OnBoardingContract.UiEvent.OnSuccessSocialLogin
 import team.godsaeng.cooktionary_android.ui.on_boarding.OnBoardingContract.UiState
+import team.godsaeng.cooktionary_android.ui.on_boarding.SocialLoginManager.Companion.PLATFORM_GOOGLE
+import team.godsaeng.cooktionary_android.ui.on_boarding.SocialLoginManager.Companion.PLATFORM_KAKAO
 import team.godsaeng.cooktionary_android.util.UserInfo
 import team.godsaeng.cooktionary_android.util.getExceptionHandler
 import team.godsaeng.domain.model.model.verification.Verification
-import team.godsaeng.domain.model.use_case.LoadStoredOAuthPlatformUseCase
-import team.godsaeng.domain.model.use_case.StoreOAuthPlatformUseCase
-import team.godsaeng.domain.model.use_case.VerifyUserUseCase
+import team.godsaeng.domain.model.use_case.user.GetGoogleAccessTokenUseCase
+import team.godsaeng.domain.model.use_case.user.LoadStoredOAuthPlatformUseCase
+import team.godsaeng.domain.model.use_case.user.StoreOAuthPlatformUseCase
+import team.godsaeng.domain.model.use_case.user.VerifyUserUseCase
 import javax.inject.Inject
 
 @HiltViewModel
 class OnBoardingViewModel @Inject constructor(
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
+    private val getGoogleAccessTokenUseCase: GetGoogleAccessTokenUseCase,
     private val verifyUserUseCase: VerifyUserUseCase,
     private val storeOAuthPlatformUseCase: StoreOAuthPlatformUseCase,
     private val loadStoredOAuthPlatformUseCase: LoadStoredOAuthPlatformUseCase
@@ -63,7 +67,7 @@ class OnBoardingViewModel @Inject constructor(
 
         is OnSuccessSocialLogin -> onSuccessSocialLogin(
             platform = event.platform,
-            token = event.token
+            data = event.data
         )
 
         is OnFailureSocialLogin -> onFailureSocialLogin()
@@ -75,15 +79,15 @@ class OnBoardingViewModel @Inject constructor(
 
     private fun onStarted() {
         viewModelScope.launch {
-            val platform = loadStoredOAuthPlatformUseCase().first()
+            when (loadStoredOAuthPlatformUseCase().first()) {
+                PLATFORM_KAKAO -> _uiEffect.emit(LoginWithKakao)
 
-            if (platform == SocialLoginManager.PLATFORM_KAKAO) {
-                _uiEffect.emit(LoginWithKakao)
-            } else if (platform == SocialLoginManager.PLATFORM_GOOGLE) {
-                _uiEffect.emit(LoginWithGoogle)
-            } else {
-                _uiState.update {
-                    it.copy(autoLoginFailed = true)
+                PLATFORM_GOOGLE -> _uiEffect.emit(LoginWithGoogle)
+
+                else -> {
+                    _uiState.update {
+                        it.copy(autoLoginFailed = true)
+                    }
                 }
             }
         }
@@ -109,30 +113,55 @@ class OnBoardingViewModel @Inject constructor(
 
     private fun onSuccessSocialLogin(
         platform: String,
-        token: String
+        data: String
     ) {
-        viewModelScope.launch(exceptionHandler) {
-            verifyUserUseCase(
-                platform = platform,
-                token = token
-            ).handle(
-                onSuccess = { verification ->
-                    onSuccessServiceLogin(
-                        verification = verification,
-                        platform = platform
+        viewModelScope.launch {
+            when (platform) {
+                PLATFORM_KAKAO -> serviceLogin(
+                    platform = platform,
+                    token = data
+                )
+
+                PLATFORM_GOOGLE -> {
+                    val googleAccessToken = getGoogleAccessToken(data)
+                    serviceLogin(
+                        platform = platform,
+                        token = googleAccessToken
                     )
-                },
-                onFailure = { error ->
-                    when (error.code) {
-                        // todo: handle error with code
-                    }
                 }
-            )
+            }
         }
     }
 
     private fun onFailureSocialLogin() {
 
+    }
+
+    private suspend fun getGoogleAccessToken(serverAuthCode: String) = getGoogleAccessTokenUseCase(
+        clientId = SocialLoginManager.GOOGLE_CLIENT_ID,
+        serverAuthCode = serverAuthCode
+    )
+
+    private suspend fun serviceLogin(
+        platform: String,
+        token: String
+    ) {
+        verifyUserUseCase(
+            platform = platform,
+            token = token
+        ).handle(
+            onSuccess = { verification ->
+                onSuccessServiceLogin(
+                    verification = verification,
+                    platform = platform
+                )
+            },
+            onFailure = { error ->
+                when (error.code) {
+                    // todo: handle error with code
+                }
+            }
+        )
     }
 
     private fun onSuccessServiceLogin(

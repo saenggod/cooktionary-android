@@ -23,6 +23,7 @@ class SocialLoginManager(
         context,
         GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
             .requestIdToken(GOOGLE_CLIENT_ID)
+            .requestServerAuthCode(GOOGLE_CLIENT_ID)
             .build()
     )
 
@@ -50,7 +51,7 @@ class SocialLoginManager(
         googleLoginLauncher = rememberLauncherForActivityResult(
             contract = ActivityResultContracts.StartActivityForResult(),
             onResult = { result ->
-                GoogleSignIn.getSignedInAccountFromIntent(result.data).result.idToken?.let {
+                GoogleSignIn.getSignedInAccountFromIntent(result.data).result.serverAuthCode?.let {
                     onSuccess(PLATFORM_GOOGLE, it)
                 } ?: run {
                     onFailure()
@@ -64,7 +65,7 @@ class SocialLoginManager(
     }
 
     companion object {
-        private const val GOOGLE_CLIENT_ID = "1008080216028-jk0o1bcv13q8q99b9ugoi59jqqai2bbd.apps.googleusercontent.com"
+        const val GOOGLE_CLIENT_ID = "1008080216028-jk0o1bcv13q8q99b9ugoi59jqqai2bbd.apps.googleusercontent.com"
         const val PLATFORM_KAKAO = "kakao"
         const val PLATFORM_GOOGLE = "google"
     }
