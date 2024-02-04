@@ -394,6 +394,7 @@ private fun ColumnScope.IngredientsButtonSection(
     ) {
         LazyVerticalGrid(
             modifier = Modifier
+                .fillMaxSize()
                 .reorderable(reorderableLazyGridState)
                 .detectReorderAfterLongPress(reorderableLazyGridState),
             state = reorderableLazyGridState.gridState,

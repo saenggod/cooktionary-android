@@ -30,11 +30,11 @@ fun Modifier.clickableWithoutRipple(onClick: () -> Unit): Modifier = this.clicka
 fun Color.alpha(alpha: Int) = this.copy(alpha = alpha / 100f)
 
 @Composable
-fun branchedModifier(
+inline fun branchedModifier(
     condition: Boolean,
-    onDefault: @Composable () -> Modifier,
-    onTrue: (@Composable (Modifier) -> Modifier)? = null,
-    onFalse: (@Composable (Modifier) -> Modifier)? = null,
+    crossinline onDefault: @Composable () -> Modifier,
+    noinline onTrue: (@Composable (Modifier) -> Modifier)? = null,
+    noinline onFalse: (@Composable (Modifier) -> Modifier)? = null,
 ): Modifier {
     val defaultModifier: Modifier = onDefault()
     var modifier: Modifier = onDefault()
