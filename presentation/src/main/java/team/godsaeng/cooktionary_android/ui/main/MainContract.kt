@@ -44,6 +44,8 @@ sealed interface MainContract : BaseContract<MainContract.UiState, MainContract.
             val trashCanSize: Int,
             val trashCanPosition: Offset
         ) : UiEvent
+
+        data object OnClickReset : UiEvent
     }
 
     sealed interface UiEffect {

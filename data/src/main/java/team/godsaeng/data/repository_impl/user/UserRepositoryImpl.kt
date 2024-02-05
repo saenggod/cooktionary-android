@@ -1,4 +1,4 @@
-package team.godsaeng.data.repository_impl
+package team.godsaeng.data.repository_impl.user
 
 import kotlinx.coroutines.flow.Flow
 import team.godsaeng.data.BuildConfig
@@ -11,7 +11,7 @@ import team.godsaeng.domain.model.model.CTError
 import team.godsaeng.domain.model.model.CTException
 import team.godsaeng.domain.model.model.ResponseState
 import team.godsaeng.domain.model.model.verification.Verification
-import team.godsaeng.domain.model.repository.UserRepository
+import team.godsaeng.domain.model.repository.user.UserRepository
 import javax.inject.Inject
 
 class UserRepositoryImpl @Inject constructor(

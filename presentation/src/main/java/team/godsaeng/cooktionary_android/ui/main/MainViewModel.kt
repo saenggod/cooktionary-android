@@ -22,14 +22,19 @@ import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnButtonOr
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnClickAddDisplay
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnClickDisplay
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnClickRemoveDisplay
+import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnClickReset
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnDone
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnTrashCanMeasured
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnTyped
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiState
+import team.godsaeng.cooktionary_android.util.getExceptionHandler
+import team.godsaeng.domain.model.use_case.ingredient.GetIngredientUseCase
 import javax.inject.Inject
 
 @HiltViewModel
-class MainViewModel @Inject constructor() : ViewModel(), MainContract {
+class MainViewModel @Inject constructor(
+    private val getIngredientUseCase: GetIngredientUseCase
+) : ViewModel(), MainContract {
     private val _uiState = MutableStateFlow(UiState())
     override val uiState: StateFlow<UiState> = _uiState.asStateFlow()
 
@@ -66,7 +71,13 @@ class MainViewModel @Inject constructor() : ViewModel(), MainContract {
             trashCanSize = event.trashCanSize,
             trashCanPosition = event.trashCanPosition
         )
+
+        is OnClickReset -> onClickReset()
     }
+
+    private val exceptionHandler = getExceptionHandler(
+        onUnknownHostException = {}
+    )
 
     private fun onClickAddDisplay() {
         val displayList = uiState.value.displayList
@@ -105,6 +116,8 @@ class MainViewModel @Inject constructor() : ViewModel(), MainContract {
     }
 
     private fun onDone(editedIndex: Int) {
+        val ingredientName = uiState.value.typedText
+
         _uiState.update {
             it.copy(
                 displayList = it.displayList.mapIndexed { index, s ->
@@ -121,6 +134,10 @@ class MainViewModel @Inject constructor() : ViewModel(), MainContract {
 
         viewModelScope.launch {
             _uiEffect.emit(ClearFocus)
+        }
+
+        viewModelScope.launch(exceptionHandler) {
+            getIngredientUseCase(ingredientName)
         }
     }
 
@@ -194,6 +211,16 @@ class MainViewModel @Inject constructor() : ViewModel(), MainContract {
             it.copy(
                 trashCanSize = trashCanSize,
                 trashCanPosition = trashCanPosition
+            )
+        }
+    }
+
+    private fun onClickReset() {
+        _uiState.update {
+            it.copy(
+                displayList = emptyList(),
+                selectedDisplayIndex = -1,
+                typedText = ""
             )
         }
     }

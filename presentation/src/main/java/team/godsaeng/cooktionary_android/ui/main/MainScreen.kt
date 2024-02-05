@@ -46,6 +46,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInteropFilter
@@ -80,6 +81,7 @@ import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnButtonOr
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnClickAddDisplay
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnClickDisplay
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnClickRemoveDisplay
+import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnClickReset
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnDone
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnTrashCanMeasured
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnTyped
@@ -151,7 +153,7 @@ private fun TopSection(
         middleContents = {
             Row(verticalAlignment = CenterVertically) {
                 Icon(
-                    modifier = Modifier.clickableWithoutRipple { },
+                    modifier = Modifier.clickableWithoutRipple { uiEvent(OnClickReset) },
                     painter = painterResource(id = R.drawable.ic_reset),
                     tint = AddedIngredientDescColor,
                     contentDescription = null
@@ -245,54 +247,66 @@ private fun IngredientDisplay(
         }
     }
 
-    SimpleTextField(
-        modifier = Modifier.focusRequester(focusRequester),
-        decorationBox = {
-            Box(modifier = Modifier.size(IngredientDisplaySize.dp)) {
-                Box(
-                    modifier = Modifier
-                        .align(Center)
-                        .padding(4.dp)
-                        .clip(shape = RoundedCornerShape(22.dp))
-                        .fillMaxSize()
-                        .border(
-                            width = (1.15).dp,
-                            color = Color.Black.alpha(3),
-                            shape = RoundedCornerShape(22.dp)
-                        )
-                        .background(color = Grey0)
-                        .clickableWithoutRipple {
-                            uiEvent(
-                                OnClickDisplay(
-                                    index = index,
-                                    ingredient = ingredient
-                                )
+    Box(modifier = Modifier.size(IngredientDisplaySize.dp)) {
+        Box(
+            modifier = Modifier
+                .align(Center)
+                .padding(4.dp)
+                .clip(shape = RoundedCornerShape(22.dp))
+                .fillMaxSize()
+                .border(
+                    width = (1.15).dp,
+                    color = Color.Black.alpha(3),
+                    shape = RoundedCornerShape(22.dp)
+                )
+                .background(color = Grey0)
+                .clickableWithoutRipple {
+                    if (index != selectedDisplayIndex) {
+                        uiEvent(
+                            OnClickDisplay(
+                                index = index,
+                                ingredient = ingredient
                             )
-                        }
-                ) {
-                    Box(modifier = Modifier.align(Center)) {
-                        it()
+                        )
                     }
-
-                    if (!isSelected && ingredient == null)
-                        PlusIcon(modifier = Modifier.align(Center))
                 }
-
-                if (isSelected) {
-                    Image(
-                        modifier = Modifier
-                            .align(Alignment.TopEnd)
-                            .clickableWithoutRipple { uiEvent(OnClickRemoveDisplay(index / 2)) },
-                        painter = painterResource(id = R.drawable.ic_close),
-                        contentDescription = null
-                    )
-                }
+        ) {
+            Box(modifier = Modifier.align(Center)) {
+                SimpleTextField(
+                    modifier = Modifier
+                        .focusRequester(focusRequester)
+                        .onFocusChanged {
+                            if (it.isFocused) {
+                                if (index != selectedDisplayIndex) {
+                                    uiEvent(
+                                        OnClickDisplay(
+                                            index = index,
+                                            ingredient = ingredient
+                                        )
+                                    )
+                                }
+                            }
+                        },
+                    value = if (isSelected) typedText else ingredient.orEmpty(),
+                    keyboardActions = KeyboardActions(onDone = { uiEvent(OnDone(index / 2)) }),
+                    onValueChange = { uiEvent(OnTyped(it)) }
+                )
             }
-        },
-        value = if (isSelected) typedText else ingredient.orEmpty(),
-        keyboardActions = KeyboardActions(onDone = { uiEvent(OnDone(index / 2)) }),
-        onValueChange = { uiEvent(OnTyped(it)) }
-    )
+
+            if (!isSelected && ingredient == null)
+                PlusIcon(modifier = Modifier.align(Center))
+        }
+
+        if (isSelected) {
+            Image(
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .clickableWithoutRipple { uiEvent(OnClickRemoveDisplay(index / 2)) },
+                painter = painterResource(id = R.drawable.ic_close),
+                contentDescription = null
+            )
+        }
+    }
 }
 
 @Composable
