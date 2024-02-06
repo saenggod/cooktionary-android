@@ -74,7 +74,7 @@ object NetworkModule {
         if (accessToken.isNotEmpty()) {
             val newRequest = chain.request()
                 .newBuilder()
-                .addHeader("Authorization", accessToken)
+                .addHeader("Authorization", "Bearer $accessToken")
                 .build()
 
             return@Interceptor chain.proceed(newRequest)

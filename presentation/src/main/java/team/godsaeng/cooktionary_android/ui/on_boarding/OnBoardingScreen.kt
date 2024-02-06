@@ -104,7 +104,9 @@ fun OnBoardingScreen(
             .fillMaxSize()
             .background(color = MaterialTheme.colors.background)
     ) {
-        SkipSection(uiEvent)
+        if (uiState.autoLoginFailed) {
+            SkipSection(uiEvent)
+        }
 
         LogoSection()
 

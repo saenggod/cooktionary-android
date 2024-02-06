@@ -115,7 +115,7 @@ class OnBoardingViewModel @Inject constructor(
         platform: String,
         data: String
     ) {
-        viewModelScope.launch {
+        viewModelScope.launch(exceptionHandler) {
             when (platform) {
                 PLATFORM_KAKAO -> serviceLogin(
                     platform = platform,
@@ -176,7 +176,7 @@ class OnBoardingViewModel @Inject constructor(
 
         NetworkModule.accessToken = verification.accessToken
 
-        viewModelScope.launch {
+        viewModelScope.launch(exceptionHandler) {
             if (uiState.value.autoLoginFailed) {
                 withContext(ioDispatcher) {
                     storeOAuthPlatformUseCase(platform)

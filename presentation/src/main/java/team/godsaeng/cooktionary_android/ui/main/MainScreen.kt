@@ -46,6 +46,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInteropFilter
@@ -80,8 +81,8 @@ import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnButtonOr
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnClickAddDisplay
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnClickDisplay
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnClickRemoveDisplay
+import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnClickReset
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnDone
-import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnTrashCanMeasured
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnTyped
 import team.godsaeng.cooktionary_android.ui.theme.AddedIngredientDescColor
 import team.godsaeng.cooktionary_android.ui.theme.Grey0
@@ -89,6 +90,7 @@ import team.godsaeng.cooktionary_android.ui.theme.Grey1
 import team.godsaeng.cooktionary_android.ui.theme.PointColor
 import team.godsaeng.cooktionary_android.ui.theme.SubColor
 import team.godsaeng.cooktionary_android.ui.theme.Typography
+import team.godsaeng.domain.model.model.ingredient.Ingredient
 
 @Composable
 fun MainScreen(
@@ -99,7 +101,6 @@ fun MainScreen(
     val focusManager = LocalFocusManager.current
 
     LaunchedEffect(uiEffect) {
-        // repeatedOnStart
         uiEffect.collect { uiEffect ->
             when (uiEffect) {
                 is ClearFocus -> focusManager.clearFocus()
@@ -135,6 +136,7 @@ fun MainScreen(
         if (uiState.isButtonDragging) {
             TrashCan(
                 isButtonRemovable = uiState.isButtonRemovable,
+                isTrashCanMeasured = uiState.trashCanSize != 0,
                 uiEvent = uiEvent
             )
         }
@@ -151,7 +153,7 @@ private fun TopSection(
         middleContents = {
             Row(verticalAlignment = CenterVertically) {
                 Icon(
-                    modifier = Modifier.clickableWithoutRipple { },
+                    modifier = Modifier.clickableWithoutRipple { uiEvent(OnClickReset) },
                     painter = painterResource(id = R.drawable.ic_reset),
                     tint = AddedIngredientDescColor,
                     contentDescription = null
@@ -175,7 +177,7 @@ const val IngredientDisplaySize = 114
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun ColumnScope.DisplaySection(
-    displayList: List<String?>,
+    displayList: List<Ingredient?>,
     selectedDisplayIndex: Int,
     typedText: String,
     uiEvent: (UiEvent) -> Unit
@@ -230,7 +232,7 @@ private fun ColumnScope.DisplaySection(
 @Composable
 private fun IngredientDisplay(
     index: Int,
-    ingredient: String?,
+    ingredient: Ingredient?,
     selectedDisplayIndex: Int,
     typedText: String,
     uiEvent: (UiEvent) -> Unit
@@ -245,60 +247,72 @@ private fun IngredientDisplay(
         }
     }
 
-    SimpleTextField(
-        modifier = Modifier.focusRequester(focusRequester),
-        decorationBox = {
-            Box(modifier = Modifier.size(IngredientDisplaySize.dp)) {
-                Box(
-                    modifier = Modifier
-                        .align(Center)
-                        .padding(4.dp)
-                        .clip(shape = RoundedCornerShape(22.dp))
-                        .fillMaxSize()
-                        .border(
-                            width = (1.15).dp,
-                            color = Color.Black.alpha(3),
-                            shape = RoundedCornerShape(22.dp)
-                        )
-                        .background(color = Grey0)
-                        .clickableWithoutRipple {
-                            uiEvent(
-                                OnClickDisplay(
-                                    index = index,
-                                    ingredient = ingredient
-                                )
+    Box(modifier = Modifier.size(IngredientDisplaySize.dp)) {
+        Box(
+            modifier = Modifier
+                .align(Center)
+                .padding(4.dp)
+                .clip(shape = RoundedCornerShape(22.dp))
+                .fillMaxSize()
+                .border(
+                    width = (1.15).dp,
+                    color = Color.Black.alpha(3),
+                    shape = RoundedCornerShape(22.dp)
+                )
+                .background(color = Grey0)
+                .clickableWithoutRipple {
+                    if (index != selectedDisplayIndex) {
+                        uiEvent(
+                            OnClickDisplay(
+                                index = index,
+                                ingredient = ingredient
                             )
-                        }
-                ) {
-                    Box(modifier = Modifier.align(Center)) {
-                        it()
+                        )
                     }
-
-                    if (!isSelected && ingredient == null)
-                        PlusIcon(modifier = Modifier.align(Center))
                 }
-
-                if (isSelected) {
-                    Image(
-                        modifier = Modifier
-                            .align(Alignment.TopEnd)
-                            .clickableWithoutRipple { uiEvent(OnClickRemoveDisplay(index / 2)) },
-                        painter = painterResource(id = R.drawable.ic_close),
-                        contentDescription = null
-                    )
-                }
+        ) {
+            Box(modifier = Modifier.align(Center)) {
+                SimpleTextField(
+                    modifier = Modifier
+                        .focusRequester(focusRequester)
+                        .onFocusChanged {
+                            if (it.isFocused) {
+                                if (index != selectedDisplayIndex) {
+                                    uiEvent(
+                                        OnClickDisplay(
+                                            index = index,
+                                            ingredient = ingredient
+                                        )
+                                    )
+                                }
+                            }
+                        },
+                    value = if (isSelected) typedText else ingredient?.name.orEmpty(),
+                    keyboardActions = KeyboardActions(onDone = { uiEvent(OnDone(index / 2)) }),
+                    onValueChange = { uiEvent(OnTyped(it)) }
+                )
             }
-        },
-        value = if (isSelected) typedText else ingredient.orEmpty(),
-        keyboardActions = KeyboardActions(onDone = { uiEvent(OnDone(index / 2)) }),
-        onValueChange = { uiEvent(OnTyped(it)) }
-    )
+
+            if (!isSelected && ingredient == null)
+                PlusIcon(modifier = Modifier.align(Center))
+        }
+
+        if (isSelected) {
+            Image(
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .clickableWithoutRipple { uiEvent(OnClickRemoveDisplay(index / 2)) },
+                painter = painterResource(id = R.drawable.ic_close),
+                contentDescription = null
+            )
+        }
+    }
 }
 
 @Composable
 private fun ColumnScope.ButtonSection(
-    displayList: List<String?>,
-    buttonList: List<String>,
+    displayList: List<Ingredient?>,
+    buttonList: List<Ingredient>,
     uiEvent: (UiEvent) -> Unit
 ) {
     Column(
@@ -323,7 +337,7 @@ private fun ColumnScope.ButtonSection(
 
 @Composable
 private fun FunctionButtonRow(
-    displayList: List<String?>,
+    displayList: List<Ingredient?>,
     uiEvent: (UiEvent) -> Unit
 ) {
     Row(
@@ -370,7 +384,7 @@ private fun FunctionButtonRow(
 
 @Composable
 private fun ColumnScope.IngredientsButtonSection(
-    buttonList: List<String>,
+    buttonList: List<Ingredient>,
     uiEvent: (UiEvent) -> Unit
 ) {
     val reorderableLazyGridState = rememberReorderableLazyGridState(
@@ -394,6 +408,7 @@ private fun ColumnScope.IngredientsButtonSection(
     ) {
         LazyVerticalGrid(
             modifier = Modifier
+                .fillMaxSize()
                 .reorderable(reorderableLazyGridState)
                 .detectReorderAfterLongPress(reorderableLazyGridState),
             state = reorderableLazyGridState.gridState,
@@ -434,7 +449,7 @@ private fun ColumnScope.IngredientsButtonSection(
 @OptIn(ExperimentalFoundationApi::class, ExperimentalComposeUiApi::class)
 @Composable
 private fun LazyGridItemScope.IngredientButton(
-    ingredient: String,
+    ingredient: Ingredient,
     isDragging: Boolean,
     uiEvent: (UiEvent) -> Unit
 ) {
@@ -466,7 +481,7 @@ private fun LazyGridItemScope.IngredientButton(
     ) {
         Column(modifier = Modifier.align(Center)) {
             StyledText(
-                text = ingredient,
+                text = ingredient.name,
                 style = Typography.bodyMedium,
                 fontSize = 13
             )
@@ -477,23 +492,31 @@ private fun LazyGridItemScope.IngredientButton(
 @Composable
 private fun BoxScope.TrashCan(
     isButtonRemovable: Boolean,
+    isTrashCanMeasured: Boolean,
     uiEvent: (UiEvent) -> Unit
 ) {
     Box(
-        modifier = Modifier
-            .align(BottomCenter)
-            .padding(bottom = 24.dp)
-            .clip(shape = RoundedCornerShape(12.dp))
-            .size(48.dp)
-            .background(color = Color.Red.alpha(if (isButtonRemovable) 100 else 50))
-            .onGloballyPositioned {
-                uiEvent(
-                    OnTrashCanMeasured(
-                        trashCanSize = it.size.width,
-                        trashCanPosition = it.positionInRoot()
+        modifier = branchedModifier(
+            condition = isTrashCanMeasured,
+            onDefault = {
+                Modifier
+                    .align(BottomCenter)
+                    .padding(bottom = 24.dp)
+                    .clip(shape = RoundedCornerShape(12.dp))
+                    .size(48.dp)
+                    .background(color = Color.Red.alpha(if (isButtonRemovable) 100 else 50))
+            },
+            onFalse = {
+                it.onGloballyPositioned { coordinates ->
+                    uiEvent(
+                        UiEvent.OnTrashCanMeasured(
+                            trashCanSize = coordinates.size.width,
+                            trashCanPosition = coordinates.positionInRoot()
+                        )
                     )
-                )
+                }
             }
+        )
     )
 }
 

@@ -1,4 +1,4 @@
-package team.godsaeng.domain.model.repository
+package team.godsaeng.domain.model.repository.user
 
 import kotlinx.coroutines.flow.Flow
 import team.godsaeng.domain.model.model.ResponseState

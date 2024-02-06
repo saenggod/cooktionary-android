@@ -3,11 +3,12 @@ package team.godsaeng.cooktionary_android.ui.main
 import androidx.compose.ui.geometry.Offset
 import org.burnoutcrew.reorderable.ItemPosition
 import team.godsaeng.cooktionary_android.ui.base.BaseContract
+import team.godsaeng.domain.model.model.ingredient.Ingredient
 
 sealed interface MainContract : BaseContract<MainContract.UiState, MainContract.UiEvent, MainContract.UiEffect> {
     data class UiState(
-        val displayList: List<String?> = emptyList(),
-        val buttonList: List<String> = emptyList(),
+        val displayList: List<Ingredient?> = emptyList(),
+        val buttonList: List<Ingredient> = emptyList(),
         val selectedDisplayIndex: Int = -1,
         val typedText: String = "",
         val isButtonDragging: Boolean = false,
@@ -24,7 +25,7 @@ sealed interface MainContract : BaseContract<MainContract.UiState, MainContract.
 
         data class OnClickDisplay(
             val index: Int,
-            val ingredient: String?
+            val ingredient: Ingredient?
         ) : UiEvent
 
         data class OnDone(val index: Int) : UiEvent
@@ -44,6 +45,8 @@ sealed interface MainContract : BaseContract<MainContract.UiState, MainContract.
             val trashCanSize: Int,
             val trashCanPosition: Offset
         ) : UiEvent
+
+        data object OnClickReset : UiEvent
     }
 
     sealed interface UiEffect {
