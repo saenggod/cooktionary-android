@@ -31,6 +31,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import team.godsaeng.cooktionary_android.R
+import team.godsaeng.cooktionary_android.ui.CollectUiEffectWithLifecycle
 import team.godsaeng.cooktionary_android.ui.StyledText
 import team.godsaeng.cooktionary_android.ui.base.use
 import team.godsaeng.cooktionary_android.ui.clickableWithoutRipple
@@ -84,9 +85,10 @@ fun OnBoardingScreen(
         uiEvent(OnStarted)
     }
 
-    LaunchedEffect(uiEffect) {
-        uiEffect.collect { uiEffect ->
-            when (uiEffect) {
+    CollectUiEffectWithLifecycle(
+        uiEffect = uiEffect,
+        onCollect = { collected ->
+            when (collected) {
                 is LoginWithKakao -> socialLoginManager.loginWithKakao()
 
                 is LoginWithGoogle -> socialLoginManager.launchGoogleLoginLauncher()
@@ -97,7 +99,7 @@ fun OnBoardingScreen(
                 )
             }
         }
-    }
+    )
 
     Box(
         modifier = Modifier

@@ -66,6 +66,7 @@ import org.burnoutcrew.reorderable.detectReorderAfterLongPress
 import org.burnoutcrew.reorderable.rememberReorderableLazyGridState
 import org.burnoutcrew.reorderable.reorderable
 import team.godsaeng.cooktionary_android.R
+import team.godsaeng.cooktionary_android.ui.CollectUiEffectWithLifecycle
 import team.godsaeng.cooktionary_android.ui.SimpleTextField
 import team.godsaeng.cooktionary_android.ui.StyledText
 import team.godsaeng.cooktionary_android.ui.TopBar
@@ -100,13 +101,14 @@ fun MainScreen(
     val (uiState, uiEvent, uiEffect) = use(viewModel)
     val focusManager = LocalFocusManager.current
 
-    LaunchedEffect(uiEffect) {
-        uiEffect.collect { uiEffect ->
-            when (uiEffect) {
+    CollectUiEffectWithLifecycle(
+        uiEffect = uiEffect,
+        onCollect = { collected ->
+            when (collected) {
                 is ClearFocus -> focusManager.clearFocus()
             }
         }
-    }
+    )
 
     Box(
         modifier = Modifier
