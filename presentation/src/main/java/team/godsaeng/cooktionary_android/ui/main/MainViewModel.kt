@@ -28,6 +28,7 @@ import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnTrashCan
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnTyped
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiState
 import team.godsaeng.cooktionary_android.util.getExceptionHandler
+import team.godsaeng.domain.model.model.ingredient.Ingredient
 import team.godsaeng.domain.model.use_case.ingredient.GetIngredientUseCase
 import javax.inject.Inject
 
@@ -105,12 +106,12 @@ class MainViewModel @Inject constructor(
 
     private fun onClickDisplay(
         index: Int,
-        ingredient: String?
+        ingredient: Ingredient?
     ) {
         _uiState.update {
             it.copy(
                 selectedDisplayIndex = index,
-                typedText = ingredient.orEmpty()
+                typedText = ingredient?.name.orEmpty()
             )
         }
     }
@@ -118,26 +119,38 @@ class MainViewModel @Inject constructor(
     private fun onDone(editedIndex: Int) {
         val ingredientName = uiState.value.typedText
 
-        _uiState.update {
-            it.copy(
-                displayList = it.displayList.mapIndexed { index, s ->
-                    if (editedIndex == index) {
-                        it.typedText
-                    } else {
-                        s
-                    }
-                },
-                typedText = "",
-                selectedDisplayIndex = -1
-            )
-        }
-
         viewModelScope.launch {
             _uiEffect.emit(ClearFocus)
         }
 
         viewModelScope.launch(exceptionHandler) {
-            getIngredientUseCase(ingredientName)
+            getIngredientUseCase(ingredientName).handle(
+                onSuccess = { ingredient ->
+                    addDisplayAndButton(
+                        editedIndex = editedIndex,
+                        ingredient = ingredient
+                    )
+                },
+                onFailure = { error ->
+                    when (error.code) {
+                        // todo: handle eeror with code
+                    }
+                }
+            )
+        }
+    }
+
+    private fun addDisplayAndButton(
+        editedIndex: Int,
+        ingredient: Ingredient
+    ) {
+        _uiState.update {
+            it.copy(
+                typedText = "",
+                selectedDisplayIndex = -1,
+                displayList = it.displayList.mapIndexed { index, original -> if (index == editedIndex) ingredient else original },
+                buttonList = it.buttonList.toMutableList().apply { add(0, ingredient) }
+            )
         }
     }
 

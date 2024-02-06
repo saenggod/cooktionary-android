@@ -83,7 +83,6 @@ import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnClickDis
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnClickRemoveDisplay
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnClickReset
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnDone
-import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnTrashCanMeasured
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnTyped
 import team.godsaeng.cooktionary_android.ui.theme.AddedIngredientDescColor
 import team.godsaeng.cooktionary_android.ui.theme.Grey0
@@ -91,6 +90,7 @@ import team.godsaeng.cooktionary_android.ui.theme.Grey1
 import team.godsaeng.cooktionary_android.ui.theme.PointColor
 import team.godsaeng.cooktionary_android.ui.theme.SubColor
 import team.godsaeng.cooktionary_android.ui.theme.Typography
+import team.godsaeng.domain.model.model.ingredient.Ingredient
 
 @Composable
 fun MainScreen(
@@ -101,7 +101,6 @@ fun MainScreen(
     val focusManager = LocalFocusManager.current
 
     LaunchedEffect(uiEffect) {
-        // repeatedOnStart
         uiEffect.collect { uiEffect ->
             when (uiEffect) {
                 is ClearFocus -> focusManager.clearFocus()
@@ -137,6 +136,7 @@ fun MainScreen(
         if (uiState.isButtonDragging) {
             TrashCan(
                 isButtonRemovable = uiState.isButtonRemovable,
+                isTrashCanMeasured = uiState.trashCanSize != 0,
                 uiEvent = uiEvent
             )
         }
@@ -177,7 +177,7 @@ const val IngredientDisplaySize = 114
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun ColumnScope.DisplaySection(
-    displayList: List<String?>,
+    displayList: List<Ingredient?>,
     selectedDisplayIndex: Int,
     typedText: String,
     uiEvent: (UiEvent) -> Unit
@@ -232,7 +232,7 @@ private fun ColumnScope.DisplaySection(
 @Composable
 private fun IngredientDisplay(
     index: Int,
-    ingredient: String?,
+    ingredient: Ingredient?,
     selectedDisplayIndex: Int,
     typedText: String,
     uiEvent: (UiEvent) -> Unit
@@ -287,7 +287,7 @@ private fun IngredientDisplay(
                                 }
                             }
                         },
-                    value = if (isSelected) typedText else ingredient.orEmpty(),
+                    value = if (isSelected) typedText else ingredient?.name.orEmpty(),
                     keyboardActions = KeyboardActions(onDone = { uiEvent(OnDone(index / 2)) }),
                     onValueChange = { uiEvent(OnTyped(it)) }
                 )
@@ -311,8 +311,8 @@ private fun IngredientDisplay(
 
 @Composable
 private fun ColumnScope.ButtonSection(
-    displayList: List<String?>,
-    buttonList: List<String>,
+    displayList: List<Ingredient?>,
+    buttonList: List<Ingredient>,
     uiEvent: (UiEvent) -> Unit
 ) {
     Column(
@@ -337,7 +337,7 @@ private fun ColumnScope.ButtonSection(
 
 @Composable
 private fun FunctionButtonRow(
-    displayList: List<String?>,
+    displayList: List<Ingredient?>,
     uiEvent: (UiEvent) -> Unit
 ) {
     Row(
@@ -384,7 +384,7 @@ private fun FunctionButtonRow(
 
 @Composable
 private fun ColumnScope.IngredientsButtonSection(
-    buttonList: List<String>,
+    buttonList: List<Ingredient>,
     uiEvent: (UiEvent) -> Unit
 ) {
     val reorderableLazyGridState = rememberReorderableLazyGridState(
@@ -449,7 +449,7 @@ private fun ColumnScope.IngredientsButtonSection(
 @OptIn(ExperimentalFoundationApi::class, ExperimentalComposeUiApi::class)
 @Composable
 private fun LazyGridItemScope.IngredientButton(
-    ingredient: String,
+    ingredient: Ingredient,
     isDragging: Boolean,
     uiEvent: (UiEvent) -> Unit
 ) {
@@ -481,7 +481,7 @@ private fun LazyGridItemScope.IngredientButton(
     ) {
         Column(modifier = Modifier.align(Center)) {
             StyledText(
-                text = ingredient,
+                text = ingredient.name,
                 style = Typography.bodyMedium,
                 fontSize = 13
             )
@@ -492,23 +492,31 @@ private fun LazyGridItemScope.IngredientButton(
 @Composable
 private fun BoxScope.TrashCan(
     isButtonRemovable: Boolean,
+    isTrashCanMeasured: Boolean,
     uiEvent: (UiEvent) -> Unit
 ) {
     Box(
-        modifier = Modifier
-            .align(BottomCenter)
-            .padding(bottom = 24.dp)
-            .clip(shape = RoundedCornerShape(12.dp))
-            .size(48.dp)
-            .background(color = Color.Red.alpha(if (isButtonRemovable) 100 else 50))
-            .onGloballyPositioned {
-                uiEvent(
-                    OnTrashCanMeasured(
-                        trashCanSize = it.size.width,
-                        trashCanPosition = it.positionInRoot()
+        modifier = branchedModifier(
+            condition = isTrashCanMeasured,
+            onDefault = {
+                Modifier
+                    .align(BottomCenter)
+                    .padding(bottom = 24.dp)
+                    .clip(shape = RoundedCornerShape(12.dp))
+                    .size(48.dp)
+                    .background(color = Color.Red.alpha(if (isButtonRemovable) 100 else 50))
+            },
+            onFalse = {
+                it.onGloballyPositioned { coordinates ->
+                    uiEvent(
+                        UiEvent.OnTrashCanMeasured(
+                            trashCanSize = coordinates.size.width,
+                            trashCanPosition = coordinates.positionInRoot()
+                        )
                     )
-                )
+                }
             }
+        )
     )
 }
 
