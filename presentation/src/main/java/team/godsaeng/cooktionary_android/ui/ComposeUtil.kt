@@ -4,12 +4,16 @@ import android.content.Context
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
+import androidx.lifecycle.flowWithLifecycle
+import kotlinx.coroutines.flow.SharedFlow
 
 @Composable
 fun dpToSp(dp: Dp): TextUnit = with(LocalDensity.current) { dp.toSp() }
@@ -49,4 +53,18 @@ inline fun branchedModifier(
     }
 
     return modifier
+}
+
+@Composable
+fun <T> CollectUiEffectWithLifecycle(
+    uiEffect: SharedFlow<T>,
+    onCollect: (T) -> Unit
+) {
+    val lifecycle = LocalLifecycleOwner.current.lifecycle
+
+    LaunchedEffect(uiEffect) {
+        uiEffect.flowWithLifecycle(lifecycle).collect { uiEffect ->
+            onCollect(uiEffect)
+        }
+    }
 }
