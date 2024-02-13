@@ -19,7 +19,7 @@
         <activity
             android:name=".ui.container.ContainerActivity"
             android:exported="true"
-            android:screenOrientation="fullSensor"
+            android:screenOrientation="portrait"
             android:theme="@style/Theme.Cooktionaryandroid">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
