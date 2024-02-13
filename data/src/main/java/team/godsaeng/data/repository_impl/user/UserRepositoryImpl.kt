@@ -7,7 +7,6 @@ import team.godsaeng.data.model.request.google_account.GoogleAccessTokenRequest
 import team.godsaeng.data.model.request.verification.VerificationRequest
 import team.godsaeng.data.model.response.verification.VerificationResponse.Companion.toDomainModel
 import team.godsaeng.data.remote.CooktionaryApi
-import team.godsaeng.domain.model.model.CTError
 import team.godsaeng.domain.model.model.CTException
 import team.godsaeng.domain.model.model.ResponseState
 import team.godsaeng.domain.model.model.verification.Verification
@@ -44,12 +43,7 @@ class UserRepositoryImpl @Inject constructor(
 
             ResponseState.OnSuccess(response.data.toDomainModel())
         } catch (exception: CTException) {
-            ResponseState.OnFailure(
-                CTError(
-                    code = exception.ctError.code,
-                    message = exception.ctError.message
-                )
-            )
+            ResponseState.OnFailure(exception.ctError)
         }
     }
 
