@@ -19,6 +19,8 @@ sealed interface MainContract : BaseContract<MainContract.UiState, MainContract.
     )
 
     sealed interface UiEvent {
+        data object OnStarted : UiEvent
+
         data object OnClickAddDisplay : UiEvent
 
         data class OnTyped(val text: String) : UiEvent

@@ -24,17 +24,20 @@ import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnClickDis
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnClickRemoveDisplay
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnClickReset
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnDone
+import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnStarted
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnTrashCanMeasured
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnTyped
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiState
 import team.godsaeng.cooktionary_android.util.getExceptionHandler
 import team.godsaeng.domain.model.model.ingredient.Ingredient
 import team.godsaeng.domain.model.use_case.ingredient.GetIngredientUseCase
+import team.godsaeng.domain.model.use_case.ingredient.GetMyIngredientListUseCase
 import javax.inject.Inject
 
 @HiltViewModel
 class MainViewModel @Inject constructor(
-    private val getIngredientUseCase: GetIngredientUseCase
+    private val getIngredientUseCase: GetIngredientUseCase,
+    private val getMyIngredientListUseCase: GetMyIngredientListUseCase
 ) : ViewModel(), MainContract {
     private val _uiState = MutableStateFlow(UiState())
     override val uiState: StateFlow<UiState> = _uiState.asStateFlow()
@@ -46,6 +49,8 @@ class MainViewModel @Inject constructor(
     override val uiEffect: SharedFlow<UiEffect> = _uiEffect.asSharedFlow()
 
     override fun uiEvent(event: MainContract.UiEvent) = when (event) {
+        is OnStarted -> onStarted()
+
         is OnClickAddDisplay -> onClickAddDisplay()
 
         is OnTyped -> onTyped(event.text)
@@ -79,6 +84,21 @@ class MainViewModel @Inject constructor(
     private val exceptionHandler = getExceptionHandler(
         onUnknownHostException = {}
     )
+
+    private fun onStarted() {
+        viewModelScope.launch {
+            getMyIngredientListUseCase().handle(
+                onSuccess = { ingredientList ->
+                    _uiState.update {
+                        it.copy(buttonList = ingredientList)
+                    }
+                },
+                onFailure = {
+                    // todo: error handle
+                }
+            )
+        }
+    }
 
     private fun onClickAddDisplay() {
         val displayList = uiState.value.displayList
@@ -133,7 +153,7 @@ class MainViewModel @Inject constructor(
                 },
                 onFailure = { error ->
                     when (error.code) {
-                        // todo: handle eeror with code
+                        // todo: handle error with code
                     }
                 }
             )

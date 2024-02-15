@@ -28,4 +28,7 @@ interface CooktionaryApi {
     suspend fun getIngredient(
         @Path("name") name: String
     ): CTResponse<IngredientResponse>
+
+    @GET("user/ingredient")
+    suspend fun getMyIngredientList(): CTResponse<List<IngredientResponse>>
 }

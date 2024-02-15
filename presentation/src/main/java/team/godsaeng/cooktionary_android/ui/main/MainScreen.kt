@@ -84,6 +84,7 @@ import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnClickDis
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnClickRemoveDisplay
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnClickReset
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnDone
+import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnStarted
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnTyped
 import team.godsaeng.cooktionary_android.ui.theme.AddedIngredientDescColor
 import team.godsaeng.cooktionary_android.ui.theme.Grey0
@@ -100,6 +101,10 @@ fun MainScreen(
 ) {
     val (uiState, uiEvent, uiEffect) = use(viewModel)
     val focusManager = LocalFocusManager.current
+
+    LaunchedEffect(Unit) {
+        uiEvent(OnStarted)
+    }
 
     CollectUiEffectWithLifecycle(
         uiEffect = uiEffect,
@@ -295,8 +300,9 @@ private fun IngredientDisplay(
                 )
             }
 
-            if (!isSelected && ingredient == null)
+            if (!isSelected && ingredient == null) {
                 PlusIcon(modifier = Modifier.align(Center))
+            }
         }
 
         if (isSelected) {
