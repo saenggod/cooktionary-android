@@ -26,6 +26,7 @@ val ArrowTint = Color(0xFF888C96)
 val ArrowBackgroundColor = Color(0xFFEDF2F9)
 val DividerColor = Color(0xFFF0F0F0)
 val CheckBoxDisabledColor = Color(0xFFAEAEB2)
+val TrashCanDisabledColor = Color(0xFFBEC3CC)
 
 @Composable
 fun textFieldSelectionColors() = TextSelectionColors(

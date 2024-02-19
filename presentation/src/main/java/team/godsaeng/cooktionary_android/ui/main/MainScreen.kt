@@ -91,8 +91,11 @@ import team.godsaeng.cooktionary_android.ui.theme.Grey0
 import team.godsaeng.cooktionary_android.ui.theme.Grey1
 import team.godsaeng.cooktionary_android.ui.theme.PointColor
 import team.godsaeng.cooktionary_android.ui.theme.SubColor
+import team.godsaeng.cooktionary_android.ui.theme.TrashCanDisabledColor
 import team.godsaeng.cooktionary_android.ui.theme.Typography
 import team.godsaeng.domain.model.model.ingredient.Ingredient
+
+const val IngredientDisplaySize = 114
 
 @Composable
 fun MainScreen(
@@ -178,8 +181,6 @@ private fun TopSection(
         }
     )
 }
-
-const val IngredientDisplaySize = 114
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -511,8 +512,9 @@ private fun BoxScope.TrashCan(
                     .align(BottomCenter)
                     .padding(bottom = 24.dp)
                     .clip(shape = RoundedCornerShape(12.dp))
-                    .size(48.dp)
-                    .background(color = Color.Red.alpha(if (isButtonRemovable) 100 else 50))
+                    .width(52.dp)
+                    .height(54.dp)
+                    .background(color = if (isButtonRemovable) PointColor else TrashCanDisabledColor)
             },
             onFalse = {
                 it.onGloballyPositioned { coordinates ->
@@ -525,7 +527,17 @@ private fun BoxScope.TrashCan(
                 }
             }
         )
-    )
+    ) {
+        Icon(
+            modifier = Modifier
+                .align(Center)
+                .width(16.dp)
+                .height(18.dp),
+            tint = Color.White,
+            painter = painterResource(id = R.drawable.ic_trash),
+            contentDescription = null
+        )
+    }
 }
 
 @Composable
