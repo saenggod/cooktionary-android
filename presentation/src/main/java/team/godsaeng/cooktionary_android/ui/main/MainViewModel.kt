@@ -14,6 +14,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.burnoutcrew.reorderable.ItemPosition
+import team.godsaeng.cooktionary_android.model.wrapper.ingredient.NotNullIngredientList
+import team.godsaeng.cooktionary_android.model.wrapper.ingredient.NullableIngredientList
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEffect
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEffect.ClearFocus
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnButtonDragged
@@ -90,7 +92,7 @@ class MainViewModel @Inject constructor(
             getMyIngredientListUseCase().handle(
                 onSuccess = { ingredientList ->
                     _uiState.update {
-                        it.copy(buttonList = ingredientList)
+                        it.copy(buttonList = NotNullIngredientList(ingredientList))
                     }
                 },
                 onFailure = {
@@ -102,15 +104,15 @@ class MainViewModel @Inject constructor(
 
     private fun onClickAddDisplay() {
         val displayList = uiState.value.displayList
-        if (displayList.isNotEmpty() && displayList.last() == null) {
+        if (displayList.values.isNotEmpty() && displayList.values.last() == null) {
 
         } else {
-            val newList = displayList.toMutableList().apply { add(null) }
+            val newList = displayList.values.toMutableList().apply { add(null) }
             val targetIndex = newList.lastIndex * 2
 
             _uiState.update {
                 it.copy(
-                    displayList = newList,
+                    displayList = NullableIngredientList(newList),
                     selectedDisplayIndex = targetIndex,
                     typedText = ""
                 )
@@ -168,8 +170,8 @@ class MainViewModel @Inject constructor(
             it.copy(
                 typedText = "",
                 selectedDisplayIndex = -1,
-                displayList = it.displayList.mapIndexed { index, original -> if (index == editedIndex) ingredient else original },
-                buttonList = it.buttonList.toMutableList().apply { add(0, ingredient) }
+                displayList = NullableIngredientList(it.displayList.values.mapIndexed { index, original -> if (index == editedIndex) ingredient else original }),
+                buttonList = NotNullIngredientList(it.buttonList.values.toMutableList().apply { add(0, ingredient) })
             )
         }
     }
@@ -177,7 +179,7 @@ class MainViewModel @Inject constructor(
     private fun onClickRemoveDisplay(index: Int) {
         _uiState.update {
             it.copy(
-                displayList = it.displayList.toMutableList().apply { removeAt(index) },
+                displayList = NullableIngredientList(it.displayList.values.toMutableList().apply { removeAt(index) }),
                 selectedDisplayIndex = -1
             )
         }
@@ -210,11 +212,7 @@ class MainViewModel @Inject constructor(
     private fun onDraggingEnded(deletableItemIndex: Int) {
         if (uiState.value.isButtonRemovable) {
             _uiState.update {
-                it.copy(
-                    buttonList = it.buttonList.toMutableList().apply {
-                        removeAt(deletableItemIndex)
-                    }
-                )
+                it.copy(buttonList = NotNullIngredientList(it.buttonList.values.toMutableList().apply { removeAt(deletableItemIndex) }))
             }
         }
 
@@ -232,7 +230,7 @@ class MainViewModel @Inject constructor(
         to: ItemPosition
     ) {
         _uiState.update {
-            it.copy(buttonList = it.buttonList.toMutableList().apply { add(to.index, removeAt(from.index)) })
+            it.copy(buttonList = NotNullIngredientList(it.buttonList.values.toMutableList().apply { add(to.index, removeAt(from.index)) }))
         }
     }
 
@@ -251,7 +249,7 @@ class MainViewModel @Inject constructor(
     private fun onClickReset() {
         _uiState.update {
             it.copy(
-                displayList = emptyList(),
+                displayList = NullableIngredientList(emptyList()),
                 selectedDisplayIndex = -1,
                 typedText = ""
             )
