@@ -61,12 +61,13 @@ fun OnBoardingScreen(
     viewModel: OnBoardingViewModel = hiltViewModel()
 ) {
     val (uiState, uiEvent, uiEffect) = use(viewModel)
+    val onEvent = remember { { event: UiEvent -> uiEvent(event) } }
     val context = getContext()
     val socialLoginManager = remember {
         SocialLoginManager(
             context = context,
             onSuccess = { platform, data ->
-                uiEvent(
+                onEvent(
                     OnSuccessSocialLogin(
                         platform = platform,
                         data = data
@@ -74,7 +75,7 @@ fun OnBoardingScreen(
                 )
             },
             onFailure = {
-                uiEvent(OnFailureSocialLogin)
+                onEvent(OnFailureSocialLogin)
             }
         )
     }.also {
@@ -82,7 +83,7 @@ fun OnBoardingScreen(
     }
 
     LaunchedEffect(Unit) {
-        uiEvent(OnStarted)
+        onEvent(OnStarted)
     }
 
     CollectUiEffectWithLifecycle(
@@ -107,26 +108,26 @@ fun OnBoardingScreen(
             .background(color = MaterialTheme.colors.background)
     ) {
         if (uiState.autoLoginFailed) {
-            SkipSection(uiEvent)
+            SkipSection(onEvent)
         }
 
         LogoSection()
 
         if (uiState.autoLoginFailed) {
-            LoginSection(uiEvent)
+            LoginSection(onEvent)
         }
     }
 }
 
 @Composable
 private fun BoxScope.SkipSection(
-    uiEvent: (UiEvent) -> Unit
+    onEvent: (UiEvent) -> Unit
 ) {
     StyledText(
         modifier = Modifier
             .align(Alignment.TopEnd)
             .padding(16.dp)
-            .clickableWithoutRipple { uiEvent(OnClickSkip) },
+            .clickableWithoutRipple { onEvent(OnClickSkip) },
         stringId = R.string.skip,
         style = Typography.bodyMedium,
         fontSize = 14,
@@ -159,7 +160,7 @@ private fun BoxScope.LogoSection() {
 
 @Composable
 private fun BoxScope.LoginSection(
-    uiEvent: (UiEvent) -> Unit
+    onEvent: (UiEvent) -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -172,14 +173,14 @@ private fun BoxScope.LoginSection(
             stringId = R.string.login_with_kakao,
             color = KakaoYellow,
             iconId = R.drawable.ic_kakao,
-            onClick = { uiEvent(OnClickKakaoLogin) }
+            onClick = { onEvent(OnClickKakaoLogin) }
         )
 
         SocialLoginButton(
             stringId = R.string.login_with_google,
             color = GoogleGrey,
             iconId = R.drawable.ic_google,
-            onClick = { uiEvent(OnClickGoogleLogin) }
+            onClick = { onEvent(OnClickGoogleLogin) }
         )
     }
 }
