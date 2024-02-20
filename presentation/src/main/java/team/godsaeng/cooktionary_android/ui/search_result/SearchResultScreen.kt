@@ -19,6 +19,7 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.Center
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
@@ -36,6 +37,7 @@ import team.godsaeng.cooktionary_android.R
 import team.godsaeng.cooktionary_android.ui.StyledText
 import team.godsaeng.cooktionary_android.ui.TopBar
 import team.godsaeng.cooktionary_android.ui.base.use
+import team.godsaeng.cooktionary_android.ui.search_result.SearchResultContract.UiEvent
 import team.godsaeng.cooktionary_android.ui.search_result.SearchResultViewModel
 import team.godsaeng.cooktionary_android.ui.theme.ImagePlaceHolderColor
 import team.godsaeng.cooktionary_android.ui.theme.PointColor
@@ -53,6 +55,7 @@ fun SearchResultScreen(
     viewModel: SearchResultViewModel = hiltViewModel()
 ) {
     val (uiState, uiEvent, uiEffect) = use(viewModel)
+    val onEvent = remember { { event: UiEvent -> uiEvent(event) } }
     val pullRefreshState = rememberPullRefreshState(
         refreshing = uiState.isRefreshing,
         onRefresh = { /* todo : Refresh */ },
