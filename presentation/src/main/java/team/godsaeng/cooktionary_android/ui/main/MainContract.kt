@@ -1,14 +1,18 @@
 package team.godsaeng.cooktionary_android.ui.main
 
+import androidx.compose.runtime.Immutable
 import androidx.compose.ui.geometry.Offset
 import org.burnoutcrew.reorderable.ItemPosition
+import team.godsaeng.cooktionary_android.model.wrapper.ingredient.NotNullIngredientList
+import team.godsaeng.cooktionary_android.model.wrapper.ingredient.NullableIngredientList
 import team.godsaeng.cooktionary_android.ui.base.BaseContract
 import team.godsaeng.domain.model.model.ingredient.Ingredient
 
 sealed interface MainContract : BaseContract<MainContract.UiState, MainContract.UiEvent, MainContract.UiEffect> {
+    @Immutable
     data class UiState(
-        val displayList: List<Ingredient?> = emptyList(),
-        val buttonList: List<Ingredient> = emptyList(),
+        val displayList: NullableIngredientList = NullableIngredientList(emptyList()),
+        val buttonList: NotNullIngredientList = NotNullIngredientList(emptyList()),
         val selectedDisplayIndex: Int = -1,
         val typedText: String = "",
         val isButtonDragging: Boolean = false,
