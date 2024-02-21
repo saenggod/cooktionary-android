@@ -32,7 +32,9 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
@@ -98,6 +100,7 @@ import team.godsaeng.cooktionary_android.ui.theme.Typography
 import team.godsaeng.domain.model.model.ingredient.Ingredient
 
 const val IngredientDisplaySize = 114
+private val LocalUiEvent = compositionLocalOf { { _: UiEvent -> } }
 
 @Composable
 fun MainScreen(
@@ -121,52 +124,47 @@ fun MainScreen(
         }
     )
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(color = MaterialTheme.colors.background)
-    ) {
-        Column(modifier = Modifier.fillMaxSize()) {
-            TopSection(
-                displayCount = uiState.displayList.values.size,
-                onEvent = onEvent
-            )
+    CompositionLocalProvider(LocalUiEvent provides onEvent) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(color = MaterialTheme.colors.background)
+        ) {
+            Column(modifier = Modifier.fillMaxSize()) {
+                TopSection(uiState.displayList.values.size)
 
-            DisplaySection(
-                displayList = uiState.displayList,
-                selectedDisplayIndex = uiState.selectedDisplayIndex,
-                typedText = uiState.typedText,
-                onEvent = onEvent,
-            )
+                DisplaySection(
+                    displayList = uiState.displayList,
+                    selectedDisplayIndex = uiState.selectedDisplayIndex,
+                    typedText = uiState.typedText
+                )
 
-            ButtonSection(
-                displayList = uiState.displayList,
-                buttonList = uiState.buttonList,
-                onEvent = onEvent
-            )
-        }
+                ButtonSection(
+                    displayList = uiState.displayList,
+                    buttonList = uiState.buttonList
+                )
+            }
 
-        if (uiState.isButtonDragging) {
-            TrashCan(
-                isButtonRemovable = uiState.isButtonRemovable,
-                isTrashCanMeasured = uiState.trashCanSize != 0,
-                onEvent = onEvent
-            )
+            if (uiState.isButtonDragging) {
+                TrashCan(
+                    isButtonRemovable = uiState.isButtonRemovable,
+                    isTrashCanMeasured = uiState.trashCanSize != 0
+                )
+            }
         }
     }
 }
 
 @Composable
-private fun TopSection(
-    displayCount: Int,
-    onEvent: (UiEvent) -> Unit
-) {
+private fun TopSection(displayCount: Int) {
+    val localUiEvent = LocalUiEvent.current
+
     TopBar(
         onClickProfileIcon = { /*TODO*/ },
         middleContents = {
             Row(verticalAlignment = CenterVertically) {
                 Icon(
-                    modifier = Modifier.clickableWithoutRipple { onEvent(OnClickReset) },
+                    modifier = Modifier.clickableWithoutRipple { localUiEvent(OnClickReset) },
                     painter = painterResource(id = R.drawable.ic_reset),
                     tint = AddedIngredientDescColor,
                     contentDescription = null
@@ -190,8 +188,7 @@ private fun TopSection(
 private fun ColumnScope.DisplaySection(
     displayList: NullableIngredientList,
     selectedDisplayIndex: Int,
-    typedText: String,
-    onEvent: (UiEvent) -> Unit
+    typedText: String
 ) {
     val lazyListState = rememberLazyListState()
     val screenWidth = LocalConfiguration.current.screenWidthDp
@@ -219,8 +216,7 @@ private fun ColumnScope.DisplaySection(
                         index = displayIndex,
                         ingredient = ingredient,
                         selectedDisplayIndex = selectedDisplayIndex,
-                        typedText = typedText,
-                        onEvent = onEvent
+                        typedText = typedText
                     )
                 }
 
@@ -245,9 +241,9 @@ private fun IngredientDisplay(
     index: Int,
     ingredient: Ingredient?,
     selectedDisplayIndex: Int,
-    typedText: String,
-    onEvent: (UiEvent) -> Unit
+    typedText: String
 ) {
+    val localUiEvent = LocalUiEvent.current
     val focusRequester = remember { FocusRequester() }
     val isSelected = index == selectedDisplayIndex
 
@@ -273,7 +269,7 @@ private fun IngredientDisplay(
                 .background(color = Grey0)
                 .clickableWithoutRipple {
                     if (index != selectedDisplayIndex) {
-                        onEvent(
+                        localUiEvent(
                             OnClickDisplay(
                                 index = index,
                                 ingredient = ingredient
@@ -289,7 +285,7 @@ private fun IngredientDisplay(
                         .onFocusChanged {
                             if (it.isFocused) {
                                 if (index != selectedDisplayIndex) {
-                                    onEvent(
+                                    localUiEvent(
                                         OnClickDisplay(
                                             index = index,
                                             ingredient = ingredient
@@ -299,8 +295,8 @@ private fun IngredientDisplay(
                             }
                         },
                     value = if (isSelected) typedText else ingredient?.name.orEmpty(),
-                    keyboardActions = KeyboardActions(onDone = { onEvent(OnDone(index / 2)) }),
-                    onValueChange = { onEvent(OnTyped(it)) }
+                    keyboardActions = KeyboardActions(onDone = { localUiEvent(OnDone(index / 2)) }),
+                    onValueChange = { localUiEvent(OnTyped(it)) }
                 )
             }
 
@@ -313,7 +309,7 @@ private fun IngredientDisplay(
             Image(
                 modifier = Modifier
                     .align(Alignment.TopEnd)
-                    .clickableWithoutRipple { onEvent(OnClickRemoveDisplay(index / 2)) },
+                    .clickableWithoutRipple { localUiEvent(OnClickRemoveDisplay(index / 2)) },
                 painter = painterResource(id = R.drawable.ic_close),
                 contentDescription = null
             )
@@ -324,8 +320,7 @@ private fun IngredientDisplay(
 @Composable
 private fun ColumnScope.ButtonSection(
     displayList: NullableIngredientList,
-    buttonList: NotNullIngredientList,
-    onEvent: (UiEvent) -> Unit
+    buttonList: NotNullIngredientList
 ) {
     Column(
         modifier = Modifier
@@ -335,23 +330,15 @@ private fun ColumnScope.ButtonSection(
             .weight(3f)
             .background(color = Grey0.alpha(60))
     ) {
-        FunctionButtonRow(
-            displayList = displayList,
-            onEvent = onEvent
-        )
-
-        IngredientsButtonSection(
-            buttonList = buttonList,
-            onEvent = onEvent
-        )
+        FunctionButtonRow(displayList)
+        IngredientsButtonSection(buttonList)
     }
 }
 
 @Composable
-private fun FunctionButtonRow(
-    displayList: NullableIngredientList,
-    onEvent: (UiEvent) -> Unit
-) {
+private fun FunctionButtonRow(displayList: NullableIngredientList) {
+    val localUiEvent = LocalUiEvent.current
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -363,7 +350,7 @@ private fun FunctionButtonRow(
                 .clip(shape = RoundedCornerShape(12.dp))
                 .fillMaxHeight()
                 .background(color = SubColor)
-                .clickableWithoutRipple { onEvent(OnClickAddDisplay) },
+                .clickableWithoutRipple { localUiEvent(OnClickAddDisplay) },
         ) {
             Icon(
                 modifier = Modifier.align(Center),
@@ -395,13 +382,11 @@ private fun FunctionButtonRow(
 }
 
 @Composable
-private fun ColumnScope.IngredientsButtonSection(
-    buttonList: NotNullIngredientList,
-    onEvent: (UiEvent) -> Unit
-) {
+private fun ColumnScope.IngredientsButtonSection(buttonList: NotNullIngredientList) {
+    val localUiEvent = LocalUiEvent.current
     val reorderableLazyGridState = rememberReorderableLazyGridState(
         onMove = { from, to ->
-            onEvent(
+            localUiEvent(
                 OnButtonOrderChanged(
                     from = from,
                     to = to
@@ -409,7 +394,7 @@ private fun ColumnScope.IngredientsButtonSection(
             )
         },
         onDragEnd = { _, to ->
-            onEvent(OnButtonDraggingEnded(to))
+            localUiEvent(OnButtonDraggingEnded(to))
         }
     )
 
@@ -439,8 +424,7 @@ private fun ColumnScope.IngredientsButtonSection(
                 ) { isDragging ->
                     IngredientButton(
                         ingredient = item,
-                        isDragging = isDragging,
-                        onEvent = onEvent
+                        isDragging = isDragging
                     )
                 }
             }
@@ -462,9 +446,9 @@ private fun ColumnScope.IngredientsButtonSection(
 @Composable
 private fun LazyGridItemScope.IngredientButton(
     ingredient: Ingredient,
-    isDragging: Boolean,
-    onEvent: (UiEvent) -> Unit
+    isDragging: Boolean
 ) {
+    val localUiEvent = LocalUiEvent.current
     var startingXPosition by remember { mutableFloatStateOf(0f) }
     var startingYPosition by remember { mutableFloatStateOf(0f) }
 
@@ -486,7 +470,7 @@ private fun LazyGridItemScope.IngredientButton(
             },
             onTrue = { modifier ->
                 modifier.onGloballyPositioned {
-                    onEvent(OnButtonDragged(it.positionInRoot() + Offset(startingXPosition, startingYPosition)))
+                    localUiEvent(OnButtonDragged(it.positionInRoot() + Offset(startingXPosition, startingYPosition)))
                 }
             },
         )
@@ -504,9 +488,10 @@ private fun LazyGridItemScope.IngredientButton(
 @Composable
 private fun BoxScope.TrashCan(
     isButtonRemovable: Boolean,
-    isTrashCanMeasured: Boolean,
-    onEvent: (UiEvent) -> Unit
+    isTrashCanMeasured: Boolean
 ) {
+    val localUiEvent = LocalUiEvent.current
+
     Box(
         modifier = branchedModifier(
             condition = isTrashCanMeasured,
@@ -521,7 +506,7 @@ private fun BoxScope.TrashCan(
             },
             onFalse = {
                 it.onGloballyPositioned { coordinates ->
-                    onEvent(
+                    localUiEvent(
                         UiEvent.OnTrashCanMeasured(
                             trashCanSize = coordinates.size.width,
                             trashCanPosition = coordinates.positionInRoot()
