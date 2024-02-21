@@ -15,7 +15,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.BottomCenter
@@ -52,8 +54,9 @@ import team.godsaeng.cooktionary_android.ui.on_boarding.OnBoardingContract.UiEve
 import team.godsaeng.cooktionary_android.ui.theme.TextColorGrey4
 import team.godsaeng.cooktionary_android.ui.theme.Typography
 
-val KakaoYellow = Color(0xFFFEE500)
-val GoogleGrey = Color(0xFFF2F2F2)
+private val KakaoYellow = Color(0xFFFEE500)
+private val GoogleGrey = Color(0xFFF2F2F2)
+private val LocalUiEvent = compositionLocalOf { { _: UiEvent -> } }
 
 @Composable
 fun OnBoardingScreen(
@@ -102,32 +105,34 @@ fun OnBoardingScreen(
         }
     )
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(color = MaterialTheme.colors.background)
-    ) {
-        if (uiState.autoLoginFailed) {
-            SkipSection(onEvent)
-        }
+    CompositionLocalProvider(LocalUiEvent provides onEvent) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(color = MaterialTheme.colors.background)
+        ) {
+            if (uiState.autoLoginFailed) {
+                SkipSection()
+            }
 
-        LogoSection()
+            LogoSection()
 
-        if (uiState.autoLoginFailed) {
-            LoginSection(onEvent)
+            if (uiState.autoLoginFailed) {
+                LoginSection()
+            }
         }
     }
 }
 
 @Composable
-private fun BoxScope.SkipSection(
-    onEvent: (UiEvent) -> Unit
-) {
+private fun BoxScope.SkipSection() {
+    val localUiEvent = LocalUiEvent.current
+
     StyledText(
         modifier = Modifier
             .align(Alignment.TopEnd)
             .padding(16.dp)
-            .clickableWithoutRipple { onEvent(OnClickSkip) },
+            .clickableWithoutRipple { localUiEvent(OnClickSkip) },
         stringId = R.string.skip,
         style = Typography.bodyMedium,
         fontSize = 14,
@@ -159,9 +164,9 @@ private fun BoxScope.LogoSection() {
 }
 
 @Composable
-private fun BoxScope.LoginSection(
-    onEvent: (UiEvent) -> Unit
-) {
+private fun BoxScope.LoginSection() {
+    val localUiEvent = LocalUiEvent.current
+
     Column(
         modifier = Modifier
             .align(BottomCenter)
@@ -173,14 +178,14 @@ private fun BoxScope.LoginSection(
             stringId = R.string.login_with_kakao,
             color = KakaoYellow,
             iconId = R.drawable.ic_kakao,
-            onClick = { onEvent(OnClickKakaoLogin) }
+            onClick = { localUiEvent(OnClickKakaoLogin) }
         )
 
         SocialLoginButton(
             stringId = R.string.login_with_google,
             color = GoogleGrey,
             iconId = R.drawable.ic_google,
-            onClick = { onEvent(OnClickGoogleLogin) }
+            onClick = { localUiEvent(OnClickGoogleLogin) }
         )
     }
 }
