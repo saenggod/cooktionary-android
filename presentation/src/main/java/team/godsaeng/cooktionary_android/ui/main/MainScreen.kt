@@ -111,10 +111,6 @@ fun MainScreen(
     val focusManager = LocalFocusManager.current
     val onEvent = remember { { event: UiEvent -> uiEvent(event) } }
 
-    LaunchedEffect(Unit) {
-        onEvent(OnStarted)
-    }
-
     CollectUiEffectWithLifecycle(
         uiEffect = uiEffect,
         onCollect = { collected ->
@@ -125,6 +121,12 @@ fun MainScreen(
     )
 
     CompositionLocalProvider(LocalUiEvent provides onEvent) {
+        val localUiEvent = LocalUiEvent.current
+
+        LaunchedEffect(Unit) {
+            localUiEvent(OnStarted)
+        }
+
         Box(
             modifier = Modifier
                 .fillMaxSize()

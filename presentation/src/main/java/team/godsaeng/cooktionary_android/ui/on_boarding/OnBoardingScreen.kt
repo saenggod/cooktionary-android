@@ -66,46 +66,48 @@ fun OnBoardingScreen(
     val (uiState, uiEvent, uiEffect) = use(viewModel)
     val onEvent = remember { { event: UiEvent -> uiEvent(event) } }
     val context = getContext()
-    val socialLoginManager = remember {
-        SocialLoginManager(
-            context = context,
-            onSuccess = { platform, data ->
-                onEvent(
-                    OnSuccessSocialLogin(
-                        platform = platform,
-                        data = data
-                    )
-                )
-            },
-            onFailure = {
-                onEvent(OnFailureSocialLogin)
-            }
-        )
-    }.also {
-        it.InitGoogleLoginLauncher()
-    }
-
-    LaunchedEffect(Unit) {
-        onEvent(OnStarted)
-    }
-
-    CollectUiEffectWithLifecycle(
-        uiEffect = uiEffect,
-        onCollect = { collected ->
-            when (collected) {
-                is LoginWithKakao -> socialLoginManager.loginWithKakao()
-
-                is LoginWithGoogle -> socialLoginManager.launchGoogleLoginLauncher()
-
-                is GoToMain -> navController.navigate(
-                    route = ROUTE_MAIN,
-                    navOptions = buildInclusivePopUpOption(ROUTE_ON_BOARDING)
-                )
-            }
-        }
-    )
 
     CompositionLocalProvider(LocalUiEvent provides onEvent) {
+        val localUiEvent = LocalUiEvent.current
+        val socialLoginManager = remember {
+            SocialLoginManager(
+                context = context,
+                onSuccess = { platform, data ->
+                    onEvent(
+                        OnSuccessSocialLogin(
+                            platform = platform,
+                            data = data
+                        )
+                    )
+                },
+                onFailure = {
+                    onEvent(OnFailureSocialLogin)
+                }
+            )
+        }.also {
+            it.InitGoogleLoginLauncher()
+        }
+
+        LaunchedEffect(Unit) {
+            localUiEvent(OnStarted)
+        }
+
+        CollectUiEffectWithLifecycle(
+            uiEffect = uiEffect,
+            onCollect = { collected ->
+                when (collected) {
+                    is LoginWithKakao -> socialLoginManager.loginWithKakao()
+
+                    is LoginWithGoogle -> socialLoginManager.launchGoogleLoginLauncher()
+
+                    is GoToMain -> navController.navigate(
+                        route = ROUTE_MAIN,
+                        navOptions = buildInclusivePopUpOption(ROUTE_ON_BOARDING)
+                    )
+                }
+            }
+        )
+
         Box(
             modifier = Modifier
                 .fillMaxSize()
