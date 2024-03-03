@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyGridItemScope
@@ -79,14 +80,17 @@ import team.godsaeng.cooktionary_android.ui.base.use
 import team.godsaeng.cooktionary_android.ui.branchedModifier
 import team.godsaeng.cooktionary_android.ui.clickableWithoutRipple
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEffect.ClearFocus
+import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEffect.ScrollTo
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnButtonDragged
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnButtonDraggingEnded
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnButtonOrderChanged
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnClickAddDisplay
+import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnClickButton
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnClickDisplay
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnClickRemoveDisplay
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnClickReset
+import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnClickSearch
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnDone
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnStarted
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnTyped
@@ -110,12 +114,15 @@ fun MainScreen(
     val (uiState, uiEvent, uiEffect) = use(viewModel)
     val focusManager = LocalFocusManager.current
     val onEvent = remember { { event: UiEvent -> uiEvent(event) } }
+    val lazyListState = rememberLazyListState()
 
     CollectUiEffectWithLifecycle(
         uiEffect = uiEffect,
         onCollect = { collected ->
             when (collected) {
                 is ClearFocus -> focusManager.clearFocus()
+
+                is ScrollTo -> lazyListState.animateScrollToItem(collected.index * 2)
             }
         }
     )
@@ -136,6 +143,7 @@ fun MainScreen(
                 TopSection(uiState.displayList.values.size)
 
                 DisplaySection(
+                    lazyListState = lazyListState,
                     displayList = uiState.displayList,
                     selectedDisplayIndex = uiState.selectedDisplayIndex,
                     typedText = uiState.typedText
@@ -188,11 +196,11 @@ private fun TopSection(displayCount: Int) {
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun ColumnScope.DisplaySection(
+    lazyListState: LazyListState,
     displayList: NullableIngredientList,
     selectedDisplayIndex: Int,
     typedText: String
 ) {
-    val lazyListState = rememberLazyListState()
     val screenWidth = LocalConfiguration.current.screenWidthDp
 
     Box(
@@ -228,12 +236,6 @@ private fun ColumnScope.DisplaySection(
                     }
                 }
             }
-        }
-    }
-
-    LaunchedEffect(selectedDisplayIndex) {
-        if (selectedDisplayIndex >= 0) {
-            lazyListState.animateScrollToItem(selectedDisplayIndex)
         }
     }
 }
@@ -370,7 +372,7 @@ private fun FunctionButtonRow(displayList: NullableIngredientList) {
                 .clip(shape = RoundedCornerShape(12.dp))
                 .fillMaxHeight()
                 .background(color = if (displayList.values.isEmpty() || displayList.values.contains(null)) Grey1 else PointColor)
-                .clickableWithoutRipple { }
+                .clickableWithoutRipple { if (displayList.values.isNotEmpty()) localUiEvent(OnClickSearch) }
         ) {
             StyledText(
                 modifier = Modifier.align(Center),
@@ -463,7 +465,7 @@ private fun LazyGridItemScope.IngredientButton(
                     .aspectRatio(1f)
                     .animateItemPlacement()
                     .background(color = Grey0)
-                    .clickableWithoutRipple { }
+                    .clickableWithoutRipple { localUiEvent(OnClickButton(ingredient)) }
                     .pointerInteropFilter {
                         startingXPosition = it.x
                         startingYPosition = it.y

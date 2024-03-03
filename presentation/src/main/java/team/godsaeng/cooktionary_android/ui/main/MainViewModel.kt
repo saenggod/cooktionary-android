@@ -18,13 +18,16 @@ import team.godsaeng.cooktionary_android.model.wrapper.ingredient.NotNullIngredi
 import team.godsaeng.cooktionary_android.model.wrapper.ingredient.NullableIngredientList
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEffect
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEffect.ClearFocus
+import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEffect.ScrollTo
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnButtonDragged
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnButtonDraggingEnded
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnButtonOrderChanged
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnClickAddDisplay
+import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnClickButton
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnClickDisplay
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnClickRemoveDisplay
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnClickReset
+import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnClickSearch
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnDone
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnStarted
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnTrashCanMeasured
@@ -39,7 +42,7 @@ import javax.inject.Inject
 @HiltViewModel
 class MainViewModel @Inject constructor(
     private val getIngredientUseCase: GetIngredientUseCase,
-    private val getMyIngredientListUseCase: GetMyIngredientListUseCase
+    private val getMyIngredientListUseCase: GetMyIngredientListUseCase,
 ) : ViewModel(), MainContract {
     private val _uiState = MutableStateFlow(UiState())
     override val uiState: StateFlow<UiState> = _uiState.asStateFlow()
@@ -66,6 +69,8 @@ class MainViewModel @Inject constructor(
 
         is OnClickRemoveDisplay -> onClickRemoveDisplay(event.index)
 
+        is OnClickButton -> onClickButton(event.ingredient)
+
         is OnButtonDragged -> onDragged(event.offset)
 
         is OnButtonDraggingEnded -> onDraggingEnded(event.removableItemIndex)
@@ -81,6 +86,8 @@ class MainViewModel @Inject constructor(
         )
 
         is OnClickReset -> onClickReset()
+
+        is OnClickSearch -> onClickSearch()
     }
 
     private val exceptionHandler = getExceptionHandler(
@@ -136,6 +143,10 @@ class MainViewModel @Inject constructor(
                 typedText = ingredient?.name.orEmpty()
             )
         }
+
+        viewModelScope.launch {
+            _uiEffect.emit(ScrollTo(uiState.value.selectedDisplayIndex))
+        }
     }
 
     private fun onDone(editedIndex: Int) {
@@ -186,6 +197,16 @@ class MainViewModel @Inject constructor(
 
         viewModelScope.launch {
             _uiEffect.emit(ClearFocus)
+        }
+    }
+
+    private fun onClickButton(ingredient: Ingredient) {
+        _uiState.update {
+            it.copy(displayList = it.displayList.copy(it.displayList.values.toMutableList().apply { add(ingredient) }))
+        }
+
+        viewModelScope.launch {
+            _uiEffect.emit(ScrollTo(uiState.value.displayList.values.lastIndex))
         }
     }
 
@@ -254,5 +275,9 @@ class MainViewModel @Inject constructor(
                 typedText = ""
             )
         }
+    }
+
+    private fun onClickSearch() {
+
     }
 }

@@ -58,7 +58,7 @@ inline fun branchedModifier(
 @Composable
 fun <T> CollectUiEffectWithLifecycle(
     uiEffect: SharedFlow<T>,
-    onCollect: (T) -> Unit
+    onCollect: suspend (T) -> Unit
 ) {
     val lifecycle = LocalLifecycleOwner.current.lifecycle
 

@@ -4,12 +4,14 @@ import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST
 import retrofit2.http.Path
+import retrofit2.http.Query
 import retrofit2.http.Url
 import team.godsaeng.data.model.CTResponse
 import team.godsaeng.data.model.request.google_account.GoogleAccessTokenRequest
 import team.godsaeng.data.model.request.verification.VerificationRequest
 import team.godsaeng.data.model.response.google_account.GoogleAccessTokenResponse
 import team.godsaeng.data.model.response.ingredient.IngredientResponse
+import team.godsaeng.data.model.response.recipe.RecipeResponse
 import team.godsaeng.data.model.response.verification.VerificationResponse
 
 interface CooktionaryApi {
@@ -31,4 +33,9 @@ interface CooktionaryApi {
 
     @GET("user/ingredient")
     suspend fun getMyIngredientList(): CTResponse<List<IngredientResponse>>
+
+    @GET("recipe")
+    suspend fun getRecipeList(
+        @Query("q") ingredientNames: String
+    ): CTResponse<List<RecipeResponse>>
 }
