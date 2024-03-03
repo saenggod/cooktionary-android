@@ -38,6 +38,8 @@ sealed interface MainContract : BaseContract<MainContract.UiState, MainContract.
 
         data class OnClickRemoveDisplay(val index: Int) : UiEvent
 
+        data class OnClickButton(val ingredient: Ingredient) : UiEvent
+
         data class OnButtonDragged(val offset: Offset) : UiEvent
 
         data class OnButtonDraggingEnded(val removableItemIndex: Int) : UiEvent
@@ -53,9 +55,13 @@ sealed interface MainContract : BaseContract<MainContract.UiState, MainContract.
         ) : UiEvent
 
         data object OnClickReset : UiEvent
+
+        data object OnClickSearch : UiEvent
     }
 
     sealed interface UiEffect {
         data object ClearFocus : UiEffect
+
+        data class ScrollTo(val index: Int) : UiEffect
     }
 }
