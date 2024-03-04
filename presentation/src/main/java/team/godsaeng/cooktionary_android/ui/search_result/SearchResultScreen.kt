@@ -37,6 +37,7 @@ import team.godsaeng.cooktionary_android.R
 import team.godsaeng.cooktionary_android.ui.StyledText
 import team.godsaeng.cooktionary_android.ui.TopBar
 import team.godsaeng.cooktionary_android.ui.base.use
+import team.godsaeng.cooktionary_android.ui.container.SEARCH_RESULT_INGREDIENTS
 import team.godsaeng.cooktionary_android.ui.search_result.SearchResultContract.UiEvent
 import team.godsaeng.cooktionary_android.ui.search_result.SearchResultViewModel
 import team.godsaeng.cooktionary_android.ui.theme.ImagePlaceHolderColor

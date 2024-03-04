@@ -63,5 +63,7 @@ sealed interface MainContract : BaseContract<MainContract.UiState, MainContract.
         data object ClearFocus : UiEffect
 
         data class ScrollTo(val index: Int) : UiEffect
+
+        data class GoToSearchResult(val ingredientNames: String) : UiEffect
     }
 }

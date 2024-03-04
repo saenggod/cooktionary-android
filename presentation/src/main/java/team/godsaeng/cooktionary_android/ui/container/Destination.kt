@@ -17,3 +17,5 @@ const val ROUTE_RECIPE = "recipe"
 const val ROUTE_MY_PAGE = "my_page"
 const val ROUTE_MY_INFO = "my_info"
 const val ROUTE_SECESSION = "secession"
+
+const val SEARCH_RESULT_INGREDIENTS = "ingredients"

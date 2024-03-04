@@ -19,6 +19,7 @@ import team.godsaeng.cooktionary_android.model.wrapper.ingredient.NullableIngred
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEffect
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEffect.ClearFocus
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEffect.ScrollTo
+import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEffect.GoToSearchResult
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnButtonDragged
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnButtonDraggingEnded
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnButtonOrderChanged
@@ -278,6 +279,8 @@ class MainViewModel @Inject constructor(
     }
 
     private fun onClickSearch() {
-
+        viewModelScope.launch {
+            _uiEffect.emit(GoToSearchResult(uiState.value.displayList.values.joinToString(",") { it?.name ?: "" }))
+        }
     }
 }
