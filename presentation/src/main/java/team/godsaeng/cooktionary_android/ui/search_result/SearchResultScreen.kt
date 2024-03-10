@@ -82,7 +82,7 @@ fun SearchResultScreen(
 
         LaunchedEffect(Unit) {
             navController.currentBackStackEntry?.arguments?.getString(SEARCH_RESULT_INGREDIENTS)?.let {
-                localUiEvent(OnStarted(it))
+                localUiEvent(OnStarted(it.split(",")))
             }
         }
 
@@ -92,7 +92,9 @@ fun SearchResultScreen(
                     .fillMaxSize()
                     .background(color = MaterialTheme.colors.background)
             ) {
-                TopSection()
+                TopSection(
+                    userIngredientNames = uiState.userIngredientNameList.joinToString(", ")
+                )
 
                 Spacer(modifier = Modifier.height(20.dp))
 
@@ -121,13 +123,20 @@ fun SearchResultScreen(
 }
 
 @Composable
-private fun TopSection() {
+private fun TopSection(
+    userIngredientNames: String
+) {
     TopBar(
         onClickBackButton = {
 
         },
         middleContents = {
-
+            StyledText(
+                text = userIngredientNames,
+                style = Typography.bodyMedium,
+                fontSize = 16,
+                color = TextColorGrey1
+            )
         },
         onClickProfileIcon = {
 

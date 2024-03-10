@@ -67,7 +67,7 @@ inline fun TopBar(
         onClickBackButton?.let {
             BackButton(
                 modifier = Modifier.align(Alignment.CenterStart),
-                onClick = { onClickBackButton() }
+                onClick = { it() }
             )
         }
 
@@ -78,7 +78,7 @@ inline fun TopBar(
         onClickProfileIcon?.let {
             ProfileIcon(
                 modifier = Modifier.align(Alignment.CenterEnd),
-                onClick = { onClickProfileIcon() }
+                onClick = { it() }
             )
         }
     }

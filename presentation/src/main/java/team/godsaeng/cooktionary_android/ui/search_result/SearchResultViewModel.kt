@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import team.godsaeng.cooktionary_android.model.wrapper.recipe.RecipeList
 import team.godsaeng.cooktionary_android.ui.search_result.SearchResultContract.UiEffect
+import team.godsaeng.cooktionary_android.ui.search_result.SearchResultContract.UiEvent.OnRefreshed
 import team.godsaeng.cooktionary_android.ui.search_result.SearchResultContract.UiEvent.OnStarted
 import team.godsaeng.cooktionary_android.ui.search_result.SearchResultContract.UiState
 import team.godsaeng.cooktionary_android.util.getExceptionHandler
@@ -30,27 +31,31 @@ class SearchResultViewModel @Inject constructor(
     override val uiEffect: SharedFlow<UiEffect> = _uiEffect.asSharedFlow()
 
     override fun uiEvent(event: SearchResultContract.UiEvent) = when (event) {
-        is OnStarted -> onStart(event.ingredientNames)
+        is OnStarted -> onStart(event.ingredientNameList)
+
+        is OnRefreshed -> onRefreshed()
     }
 
     private val exceptionHandler = getExceptionHandler(
         onUnknownHostException = {}
     )
 
-    private fun onStart(ingredientNames: String) {
-        search(ingredientNames)
+    private fun onStart(ingredientNameList: List<String>) {
+        _uiState.update {
+            it.copy(userIngredientNameList = ingredientNameList)
+        }
+
+        search(ingredientNameList)
     }
 
-    private fun search(ingredientNames: String) {
+    private fun search(ingredientNameList: List<String>) {
         viewModelScope.launch {
             _uiState.update {
                 it.copy(isLoading = true)
             }
 
-            getRecipeListUseCase(ingredientNames).handle(
+            getRecipeListUseCase(ingredientNameList).handle(
                 onSuccess = { recipeList ->
-                    val userIngredientNames = ingredientNames.split(",")
-
                     _uiState.update {
                         it.copy(
                             isLoading = false,
@@ -59,7 +64,7 @@ class SearchResultViewModel @Inject constructor(
                                     val recipeIngredientNames = recipe.ingredientNameList
                                     var existingIngredientCount = 0
 
-                                    for (userIngredient in userIngredientNames) {
+                                    for (userIngredient in ingredientNameList) {
                                         for (recipeIngredient in recipeIngredientNames) {
                                             if (userIngredient == recipeIngredient) {
                                                 existingIngredientCount++
@@ -78,5 +83,9 @@ class SearchResultViewModel @Inject constructor(
                 }
             )
         }
+    }
+
+    private fun onRefreshed() {
+
     }
 }
