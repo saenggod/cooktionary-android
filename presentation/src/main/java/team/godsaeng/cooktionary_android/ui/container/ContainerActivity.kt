@@ -1,6 +1,6 @@
 package team.godsaeng.cooktionary_android.ui.container
 
-import SearchResultScreen
+import team.godsaeng.cooktionary_android.ui.search_result.SearchResultScreen
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent

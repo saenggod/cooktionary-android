@@ -1,6 +1,7 @@
 package team.godsaeng.cooktionary_android.ui.search_result
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -8,13 +9,20 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+import team.godsaeng.cooktionary_android.model.wrapper.recipe.RecipeList
 import team.godsaeng.cooktionary_android.ui.search_result.SearchResultContract.UiEffect
+import team.godsaeng.cooktionary_android.ui.search_result.SearchResultContract.UiEvent.OnStarted
 import team.godsaeng.cooktionary_android.ui.search_result.SearchResultContract.UiState
 import team.godsaeng.cooktionary_android.util.getExceptionHandler
+import team.godsaeng.domain.model.use_case.recipe.GetRecipeListUseCase
 import javax.inject.Inject
 
 @HiltViewModel
-class SearchResultViewModel @Inject constructor() : ViewModel(), SearchResultContract {
+class SearchResultViewModel @Inject constructor(
+    private val getRecipeListUseCase: GetRecipeListUseCase
+) : ViewModel(), SearchResultContract {
     private val _uiState = MutableStateFlow(UiState())
     override val uiState: StateFlow<UiState> = _uiState.asStateFlow()
 
@@ -22,10 +30,53 @@ class SearchResultViewModel @Inject constructor() : ViewModel(), SearchResultCon
     override val uiEffect: SharedFlow<UiEffect> = _uiEffect.asSharedFlow()
 
     override fun uiEvent(event: SearchResultContract.UiEvent) = when (event) {
-        else -> Unit
+        is OnStarted -> onStart(event.ingredientNames)
     }
 
     private val exceptionHandler = getExceptionHandler(
         onUnknownHostException = {}
     )
+
+    private fun onStart(ingredientNames: String) {
+        search(ingredientNames)
+    }
+
+    private fun search(ingredientNames: String) {
+        viewModelScope.launch {
+            _uiState.update {
+                it.copy(isLoading = true)
+            }
+
+            getRecipeListUseCase(ingredientNames).handle(
+                onSuccess = { recipeList ->
+                    val userIngredientNames = ingredientNames.split(",")
+
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            recipeList = RecipeList(
+                                recipeList.map { recipe ->
+                                    val recipeIngredientNames = recipe.ingredientNameList
+                                    var existingIngredientCount = 0
+
+                                    for (userIngredient in userIngredientNames) {
+                                        for (recipeIngredient in recipeIngredientNames) {
+                                            if (userIngredient == recipeIngredient) {
+                                                existingIngredientCount++
+                                            }
+                                        }
+                                    }
+
+                                    recipe.copy(neededIngredientCount = recipeIngredientNames.size - existingIngredientCount)
+                                }
+                            )
+                        )
+                    }
+                },
+                onFailure = {
+
+                }
+            )
+        }
+    }
 }

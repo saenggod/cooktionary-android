@@ -1,6 +1,9 @@
+package team.godsaeng.cooktionary_android.ui.search_result
+
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Arrangement.Absolute.spacedBy
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -13,12 +16,16 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.Center
@@ -26,6 +33,7 @@ import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale.Companion.Crop
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -33,13 +41,16 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.lerp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import coil.compose.AsyncImage
 import team.godsaeng.cooktionary_android.R
+import team.godsaeng.cooktionary_android.model.wrapper.recipe.RecipeList
+import team.godsaeng.cooktionary_android.ui.LoadingDialog
 import team.godsaeng.cooktionary_android.ui.StyledText
 import team.godsaeng.cooktionary_android.ui.TopBar
 import team.godsaeng.cooktionary_android.ui.base.use
 import team.godsaeng.cooktionary_android.ui.container.SEARCH_RESULT_INGREDIENTS
 import team.godsaeng.cooktionary_android.ui.search_result.SearchResultContract.UiEvent
-import team.godsaeng.cooktionary_android.ui.search_result.SearchResultViewModel
+import team.godsaeng.cooktionary_android.ui.search_result.SearchResultContract.UiEvent.OnStarted
 import team.godsaeng.cooktionary_android.ui.theme.ImagePlaceHolderColor
 import team.godsaeng.cooktionary_android.ui.theme.PointColor
 import team.godsaeng.cooktionary_android.ui.theme.ProgressBackgroundColor
@@ -48,6 +59,9 @@ import team.godsaeng.cooktionary_android.ui.theme.TextColorGrey2
 import team.godsaeng.cooktionary_android.ui.theme.TextColorGrey3
 import team.godsaeng.cooktionary_android.ui.theme.TextColorGrey6
 import team.godsaeng.cooktionary_android.ui.theme.Typography
+import team.godsaeng.domain.model.model.recipe.Recipe
+
+private val LocalUiEvent = compositionLocalOf { { _: UiEvent -> } }
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
@@ -63,27 +77,45 @@ fun SearchResultScreen(
         refreshThreshold = 80.dp
     )
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(color = MaterialTheme.colors.background)
-    ) {
-        TopSection()
+    CompositionLocalProvider(LocalUiEvent provides onEvent) {
+        val localUiEvent = LocalUiEvent.current
 
-        Spacer(modifier = Modifier.height(20.dp))
+        LaunchedEffect(Unit) {
+            navController.currentBackStackEntry?.arguments?.getString(SEARCH_RESULT_INGREDIENTS)?.let {
+                localUiEvent(OnStarted(it))
+            }
+        }
 
-        Column(modifier = Modifier.pullRefresh(pullRefreshState)) {
-            PullToRefreshSection(
-                fraction = pullRefreshState.progress.coerceIn(0f..1f)
-            )
+        Box {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(color = MaterialTheme.colors.background)
+            ) {
+                TopSection()
 
-            SearchResultDescSection(
-                recipeCount = 6
-            )
+                Spacer(modifier = Modifier.height(20.dp))
 
-            Spacer(modifier = Modifier.height(20.dp))
+                Column(modifier = Modifier.pullRefresh(pullRefreshState)) {
+                    PullToRefreshSection(
+                        fraction = pullRefreshState.progress.coerceIn(0f..1f)
+                    )
 
-            SearchResultSection()
+                    SearchResultDescSection(
+                        recipeCount = uiState.recipeList.values.size
+                    )
+
+                    Spacer(modifier = Modifier.height(20.dp))
+
+                    SearchResultSection(
+                        recipeList = uiState.recipeList
+                    )
+                }
+            }
+
+            if (uiState.isLoading) {
+                LoadingDialog()
+            }
         }
     }
 }
@@ -182,18 +214,23 @@ private fun SearchResultDescSection(recipeCount: Int) {
 }
 
 @Composable
-private fun SearchResultSection() {
+private fun SearchResultSection(
+    recipeList: RecipeList
+) {
     LazyColumn(
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = spacedBy(18.dp)
     ) {
-        item {
-            Recipe()
+        items(recipeList.values) { recipe ->
+            Recipe(recipe)
         }
     }
 }
 
 @Composable
-private fun Recipe() {
+private fun Recipe(
+    recipe: Recipe
+) {
     Row(
         modifier = Modifier
             .padding(horizontal = 20.dp)
@@ -206,7 +243,12 @@ private fun Recipe() {
                 .size(70.dp)
                 .background(color = ImagePlaceHolderColor)
         ) {
-
+            AsyncImage(
+                modifier = Modifier.fillMaxSize(),
+                model = recipe.imageUrl,
+                contentScale = Crop,
+                contentDescription = null
+            )
         }
 
         Spacer(modifier = Modifier.width(12.dp))
@@ -220,24 +262,25 @@ private fun Recipe() {
                 verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 StyledText(
-                    text = "맛있는 계란 볶음밥",
+                    text = recipe.title,
                     style = Typography.bodyLarge,
                     fontSize = 18,
                     color = Color.Black
                 )
 
                 StyledText(
-                    text = "${stringResource(id = R.string.cooking_time)}",
+                    text = stringResource(id = R.string.cooking_time, recipe.time),
                     style = Typography.bodyLarge,
                     fontSize = 13,
                     color = TextColorGrey3
                 )
 
                 StyledText(
-                    text = "즉시 조리 가능",
+                    text = if (recipe.neededIngredientCount == 0) stringResource(id = R.string.cookable_right_now)
+                    else stringResource(id = R.string.needed_other_ingredients_with_count, recipe.neededIngredientCount),
                     style = Typography.bodyLarge,
                     fontSize = 13,
-                    color = PointColor
+                    color = if (recipe.neededIngredientCount == 0) PointColor else TextColorGrey3
                 )
             }
 
