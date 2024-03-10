@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import team.godsaeng.cooktionary_android.model.wrapper.recipe.RecipeList
 import team.godsaeng.cooktionary_android.ui.search_result.SearchResultContract.UiEffect
+import team.godsaeng.cooktionary_android.ui.search_result.SearchResultContract.UiEvent.OnClickRecipe
 import team.godsaeng.cooktionary_android.ui.search_result.SearchResultContract.UiEvent.OnRefreshed
 import team.godsaeng.cooktionary_android.ui.search_result.SearchResultContract.UiEvent.OnStarted
 import team.godsaeng.cooktionary_android.ui.search_result.SearchResultContract.UiState
@@ -34,6 +35,8 @@ class SearchResultViewModel @Inject constructor(
         is OnStarted -> onStart(event.ingredientNameList)
 
         is OnRefreshed -> onRefreshed()
+
+        is OnClickRecipe -> onClickRecipe(event.index)
     }
 
     private val exceptionHandler = getExceptionHandler(
@@ -86,6 +89,10 @@ class SearchResultViewModel @Inject constructor(
     }
 
     private fun onRefreshed() {
+        search(uiState.value.userIngredientNameList)
+    }
+
+    private fun onClickRecipe(index: Int) {
 
     }
 }

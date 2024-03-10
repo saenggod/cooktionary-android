@@ -18,6 +18,8 @@ interface SearchResultContract : BaseContract<SearchResultContract.UiState, Sear
         data class OnStarted(val ingredientNameList: List<String>) : UiEvent
 
         data object OnRefreshed : UiEvent
+
+        data class OnClickRecipe(val index: Int) : UiEvent
     }
 
     sealed interface UiEffect {

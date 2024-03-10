@@ -16,7 +16,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.MaterialTheme
@@ -48,8 +48,11 @@ import team.godsaeng.cooktionary_android.ui.LoadingDialog
 import team.godsaeng.cooktionary_android.ui.StyledText
 import team.godsaeng.cooktionary_android.ui.TopBar
 import team.godsaeng.cooktionary_android.ui.base.use
+import team.godsaeng.cooktionary_android.ui.clickableWithoutRipple
 import team.godsaeng.cooktionary_android.ui.container.SEARCH_RESULT_INGREDIENTS
 import team.godsaeng.cooktionary_android.ui.search_result.SearchResultContract.UiEvent
+import team.godsaeng.cooktionary_android.ui.search_result.SearchResultContract.UiEvent.OnClickRecipe
+import team.godsaeng.cooktionary_android.ui.search_result.SearchResultContract.UiEvent.OnRefreshed
 import team.godsaeng.cooktionary_android.ui.search_result.SearchResultContract.UiEvent.OnStarted
 import team.godsaeng.cooktionary_android.ui.theme.ImagePlaceHolderColor
 import team.godsaeng.cooktionary_android.ui.theme.PointColor
@@ -71,11 +74,6 @@ fun SearchResultScreen(
 ) {
     val (uiState, uiEvent, uiEffect) = use(viewModel)
     val onEvent = remember { { event: UiEvent -> uiEvent(event) } }
-    val pullRefreshState = rememberPullRefreshState(
-        refreshing = uiState.isRefreshing,
-        onRefresh = { /* todo : Refresh */ },
-        refreshThreshold = 80.dp
-    )
 
     CompositionLocalProvider(LocalUiEvent provides onEvent) {
         val localUiEvent = LocalUiEvent.current
@@ -85,6 +83,12 @@ fun SearchResultScreen(
                 localUiEvent(OnStarted(it.split(",")))
             }
         }
+
+        val pullRefreshState = rememberPullRefreshState(
+            refreshing = uiState.isRefreshing,
+            onRefresh = { localUiEvent(OnRefreshed) },
+            refreshThreshold = 80.dp
+        )
 
         Box {
             Column(
@@ -230,21 +234,28 @@ private fun SearchResultSection(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = spacedBy(18.dp)
     ) {
-        items(recipeList.values) { recipe ->
-            Recipe(recipe)
+        itemsIndexed(recipeList.values) { index, recipe ->
+            Recipe(
+                index = index,
+                recipe = recipe
+            )
         }
     }
 }
 
 @Composable
 private fun Recipe(
+    index: Int,
     recipe: Recipe
 ) {
+    val localUiEvent = LocalUiEvent.current
+
     Row(
         modifier = Modifier
             .padding(horizontal = 20.dp)
             .fillMaxWidth()
             .height(70.dp)
+            .clickableWithoutRipple { localUiEvent(OnClickRecipe(index)) }
     ) {
         Box(
             modifier = Modifier
