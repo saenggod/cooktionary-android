@@ -1,17 +1,20 @@
 package team.godsaeng.cooktionary_android.ui.container
 
-import SearchResultScreen
+import team.godsaeng.cooktionary_android.ui.search_result.SearchResultScreen
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.runtime.Composable
+import androidx.navigation.NamedNavArgument
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavOptions
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import dagger.hilt.android.AndroidEntryPoint
 import team.godsaeng.cooktionary_android.ui.main.MainScreen
 import team.godsaeng.cooktionary_android.ui.my_info.MyInfoScreen
@@ -43,7 +46,10 @@ private fun ContainerScreen() {
         with(navController) {
             navScreen(Destination.ON_BOARDING.route) { OnBoardingScreen(this) }
             navScreen(Destination.MAIN.route) { MainScreen(this) }
-            navScreen(Destination.SEARCH_RESULT.route) { SearchResultScreen(this) }
+            navScreen(
+                destination = "${Destination.SEARCH_RESULT.route}/{$SEARCH_RESULT_INGREDIENTS}",
+                arguments = listOf(navArgument(SEARCH_RESULT_INGREDIENTS) { type = NavType.StringType })
+            ) { SearchResultScreen(this) }
             navScreen(Destination.RECIPE.route) { RecipeScreen(this) }
             navScreen(Destination.MY_PAGE.route) { MyPageScreen(this) }
             navScreen(Destination.MY_INFO.route) { MyInfoScreen(this) }
@@ -54,10 +60,12 @@ private fun ContainerScreen() {
 
 fun NavGraphBuilder.navScreen(
     destination: String,
+    arguments: List<NamedNavArgument> = emptyList(),
     content: @Composable () -> Unit
 ) {
     composable(
         route = destination,
+        arguments = arguments,
         enterTransition = { EnterTransition.None },
         exitTransition = { ExitTransition.None },
         popEnterTransition = { EnterTransition.None },

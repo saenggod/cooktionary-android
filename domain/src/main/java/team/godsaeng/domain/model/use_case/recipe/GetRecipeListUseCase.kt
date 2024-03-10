@@ -8,5 +8,5 @@ import javax.inject.Inject
 
 @Reusable
 class GetRecipeListUseCase @Inject constructor(private val repository: RecipeRepository) {
-    suspend operator fun invoke(ingredientNames: String): ResponseState<List<Recipe>> = repository.fetchRecipeList(ingredientNames)
+    suspend operator fun invoke(ingredientNameList: List<String>): ResponseState<List<Recipe>> = repository.fetchRecipeList(ingredientNameList)
 }

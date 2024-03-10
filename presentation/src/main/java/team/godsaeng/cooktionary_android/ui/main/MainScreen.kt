@@ -79,8 +79,10 @@ import team.godsaeng.cooktionary_android.ui.alpha
 import team.godsaeng.cooktionary_android.ui.base.use
 import team.godsaeng.cooktionary_android.ui.branchedModifier
 import team.godsaeng.cooktionary_android.ui.clickableWithoutRipple
+import team.godsaeng.cooktionary_android.ui.container.ROUTE_SEARCH_RESULT
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEffect.ClearFocus
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEffect.ScrollTo
+import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEffect.GoToSearchResult
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnButtonDragged
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnButtonDraggingEnded
@@ -116,16 +118,15 @@ fun MainScreen(
     val onEvent = remember { { event: UiEvent -> uiEvent(event) } }
     val lazyListState = rememberLazyListState()
 
-    CollectUiEffectWithLifecycle(
-        uiEffect = uiEffect,
-        onCollect = { collected ->
-            when (collected) {
-                is ClearFocus -> focusManager.clearFocus()
+    CollectUiEffectWithLifecycle(uiEffect) { collected ->
+        when (collected) {
+            is ClearFocus -> focusManager.clearFocus()
 
-                is ScrollTo -> lazyListState.animateScrollToItem(collected.index * 2)
-            }
+            is ScrollTo -> lazyListState.animateScrollToItem(collected.index * 2)
+
+            is GoToSearchResult -> navController.navigate("$ROUTE_SEARCH_RESULT/${collected.ingredientNames}")
         }
-    )
+    }
 
     CompositionLocalProvider(LocalUiEvent provides onEvent) {
         val localUiEvent = LocalUiEvent.current

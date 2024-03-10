@@ -9,5 +9,6 @@ data class Recipe(
     val time: String,
     val score: String,
     val content: String,
-    val imageUrl: String
+    val imageUrl: String,
+    val neededIngredientCount: Int
 ) : BaseModel

@@ -22,7 +22,8 @@ data class RecipeResponse(
                 time = time,
                 score = score,
                 content = content,
-                imageUrl = imageUrl
+                imageUrl = imageUrl,
+                neededIngredientCount = 0
             )
         }
     }
