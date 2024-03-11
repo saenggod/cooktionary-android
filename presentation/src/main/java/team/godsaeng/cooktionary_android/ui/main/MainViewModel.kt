@@ -4,13 +4,12 @@ import androidx.compose.ui.geometry.Offset
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.channels.BufferOverflow
-import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.burnoutcrew.reorderable.ItemPosition
@@ -18,8 +17,8 @@ import team.godsaeng.cooktionary_android.model.wrapper.ingredient.NotNullIngredi
 import team.godsaeng.cooktionary_android.model.wrapper.ingredient.NullableIngredientList
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEffect
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEffect.ClearFocus
-import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEffect.ScrollTo
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEffect.GoToSearchResult
+import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEffect.ScrollTo
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnButtonDragged
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnButtonDraggingEnded
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnButtonOrderChanged
@@ -48,11 +47,8 @@ class MainViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(UiState())
     override val uiState: StateFlow<UiState> = _uiState.asStateFlow()
 
-    private val _uiEffect = MutableSharedFlow<UiEffect>(
-        replay = 1,
-        onBufferOverflow = BufferOverflow.DROP_OLDEST
-    )
-    override val uiEffect: SharedFlow<UiEffect> = _uiEffect.asSharedFlow()
+    private val _uiEffect = Channel<UiEffect>(capacity = Channel.BUFFERED)
+    override val uiEffect: Flow<UiEffect> = _uiEffect.receiveAsFlow()
 
     override fun uiEvent(event: MainContract.UiEvent) = when (event) {
         is OnStarted -> onStarted()
@@ -146,7 +142,7 @@ class MainViewModel @Inject constructor(
         }
 
         viewModelScope.launch {
-            _uiEffect.emit(ScrollTo(uiState.value.selectedDisplayIndex))
+            _uiEffect.send(ScrollTo(uiState.value.selectedDisplayIndex))
         }
     }
 
@@ -154,7 +150,7 @@ class MainViewModel @Inject constructor(
         val ingredientName = uiState.value.typedText
 
         viewModelScope.launch {
-            _uiEffect.emit(ClearFocus)
+            _uiEffect.send(ClearFocus)
         }
 
         viewModelScope.launch(exceptionHandler) {
@@ -197,7 +193,7 @@ class MainViewModel @Inject constructor(
         }
 
         viewModelScope.launch {
-            _uiEffect.emit(ClearFocus)
+            _uiEffect.send(ClearFocus)
         }
     }
 
@@ -207,7 +203,7 @@ class MainViewModel @Inject constructor(
         }
 
         viewModelScope.launch {
-            _uiEffect.emit(ScrollTo(uiState.value.displayList.values.lastIndex))
+            _uiEffect.send(ScrollTo(uiState.value.displayList.values.lastIndex))
         }
     }
 
@@ -280,7 +276,7 @@ class MainViewModel @Inject constructor(
 
     private fun onClickSearch() {
         viewModelScope.launch {
-            _uiEffect.emit(GoToSearchResult(uiState.value.displayList.values.joinToString(",") { it?.name ?: "" }))
+            _uiEffect.send(GoToSearchResult(uiState.value.displayList.values.joinToString(",") { it?.name ?: "" }))
         }
     }
 }

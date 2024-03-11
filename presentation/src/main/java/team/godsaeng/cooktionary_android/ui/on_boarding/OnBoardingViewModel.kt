@@ -4,14 +4,14 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.channels.BufferOverflow
-import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.Channel.Factory.BUFFERED
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -50,11 +50,8 @@ class OnBoardingViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(UiState())
     override val uiState: StateFlow<UiState> = _uiState.asStateFlow()
 
-    private val _uiEffect = MutableSharedFlow<UiEffect>(
-        replay = 1,
-        onBufferOverflow = BufferOverflow.DROP_OLDEST
-    )
-    override val uiEffect: SharedFlow<UiEffect> = _uiEffect.asSharedFlow()
+    private val _uiEffect = Channel<UiEffect>(capacity = BUFFERED)
+    override val uiEffect: Flow<UiEffect> = _uiEffect.receiveAsFlow()
 
     override fun uiEvent(event: OnBoardingContract.UiEvent) = when (event) {
         is OnStarted -> onStarted()
@@ -80,9 +77,9 @@ class OnBoardingViewModel @Inject constructor(
     private fun onStarted() {
         viewModelScope.launch {
             when (loadStoredOAuthPlatformUseCase().first()) {
-                PLATFORM_KAKAO -> _uiEffect.emit(LoginWithKakao)
+                PLATFORM_KAKAO -> _uiEffect.send(LoginWithKakao)
 
-                PLATFORM_GOOGLE -> _uiEffect.emit(LoginWithGoogle)
+                PLATFORM_GOOGLE -> _uiEffect.send(LoginWithGoogle)
 
                 else -> {
                     _uiState.update {
@@ -95,19 +92,19 @@ class OnBoardingViewModel @Inject constructor(
 
     private fun onClickKakaoLogin() {
         viewModelScope.launch {
-            _uiEffect.emit(LoginWithKakao)
+            _uiEffect.send(LoginWithKakao)
         }
     }
 
     private fun onClickGoogleLogin() {
         viewModelScope.launch {
-            _uiEffect.emit(LoginWithGoogle)
+            _uiEffect.send(LoginWithGoogle)
         }
     }
 
     private fun onClickSkip() {
         viewModelScope.launch {
-            _uiEffect.emit(GoToMain)
+            _uiEffect.send(GoToMain)
         }
     }
 
@@ -183,7 +180,7 @@ class OnBoardingViewModel @Inject constructor(
                 }
             }
 
-            _uiEffect.emit(GoToMain)
+            _uiEffect.send(GoToMain)
         }
     }
 
