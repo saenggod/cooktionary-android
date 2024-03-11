@@ -1,6 +1,7 @@
 package team.godsaeng.data.remote
 
 import retrofit2.http.Body
+import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.POST
 import retrofit2.http.Path
@@ -38,4 +39,14 @@ interface CooktionaryApi {
     suspend fun getRecipeList(
         @Query("q") ingredientNames: String
     ): CTResponse<List<RecipeResponse>>
+
+    @POST("recipe/save/{recipeId}")
+    suspend fun postRecipeSaving(
+        @Path("recipeId") recipeId: Int
+    )
+
+    @DELETE("recipe/delete/{recipeId}")
+    suspend fun deleteSavedRecipe(
+        @Path("recipeId") recipeId: Int
+    )
 }
