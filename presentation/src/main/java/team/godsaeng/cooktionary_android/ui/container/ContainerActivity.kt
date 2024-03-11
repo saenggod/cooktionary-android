@@ -1,6 +1,5 @@
 package team.godsaeng.cooktionary_android.ui.container
 
-import team.godsaeng.cooktionary_android.ui.search_result.SearchResultScreen
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -21,6 +20,7 @@ import team.godsaeng.cooktionary_android.ui.my_info.MyInfoScreen
 import team.godsaeng.cooktionary_android.ui.my_page.MyPageScreen
 import team.godsaeng.cooktionary_android.ui.on_boarding.OnBoardingScreen
 import team.godsaeng.cooktionary_android.ui.recipe.RecipeScreen
+import team.godsaeng.cooktionary_android.ui.search_result.SearchResultScreen
 import team.godsaeng.cooktionary_android.ui.secession.SecessionScreen
 import team.godsaeng.cooktionary_android.ui.theme.CooktionaryandroidTheme
 
@@ -50,7 +50,10 @@ private fun ContainerScreen() {
                 destination = "${Destination.SEARCH_RESULT.route}/{$SEARCH_RESULT_INGREDIENTS}",
                 arguments = listOf(navArgument(SEARCH_RESULT_INGREDIENTS) { type = NavType.StringType })
             ) { SearchResultScreen(this) }
-            navScreen(Destination.RECIPE.route) { RecipeScreen(this) }
+            navScreen(
+                destination = "${Destination.RECIPE.route}/{$RECIPE_RECIPE_INDEX}",
+                arguments = listOf(navArgument(RECIPE_RECIPE_INDEX) { type = NavType.IntType })
+            ) { RecipeScreen(this) }
             navScreen(Destination.MY_PAGE.route) { MyPageScreen(this) }
             navScreen(Destination.MY_INFO.route) { MyInfoScreen(this) }
             navScreen(Destination.SECESSION.route) { SecessionScreen(this) }

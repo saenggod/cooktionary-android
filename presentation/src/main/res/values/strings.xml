@@ -16,7 +16,7 @@
     <!--    SearchResult-->
     <string name="result_count">%d개의 레시피</string>
     <string name="result_desc">위 레시피는 chat-gpt의 검색결과를 기반으로 제공됩니다.</string>
-    <string name="cooking_time">조리시간 %s</string>
+    <string name="cooking_time">소요시간</string>
     <string name="cookable_right_now">즉시 조리 가능</string>
     <string name="load_more_recipe">다른 레시피 끌어오기</string>
     <string name="needed_other_ingredients_with_count">추가로 필요한 재료 %d개</string>

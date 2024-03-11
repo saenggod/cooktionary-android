@@ -23,6 +23,6 @@ interface SearchResultContract : BaseContract<SearchResultContract.UiState, Sear
     }
 
     sealed interface UiEffect {
-
+        data class GoToRecipe(val index: Int) : UiEffect
     }
 }

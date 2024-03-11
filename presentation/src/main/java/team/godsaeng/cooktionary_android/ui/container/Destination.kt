@@ -19,3 +19,4 @@ const val ROUTE_MY_INFO = "my_info"
 const val ROUTE_SECESSION = "secession"
 
 const val SEARCH_RESULT_INGREDIENTS = "ingredients"
+const val RECIPE_RECIPE_INDEX = "recipe_index"

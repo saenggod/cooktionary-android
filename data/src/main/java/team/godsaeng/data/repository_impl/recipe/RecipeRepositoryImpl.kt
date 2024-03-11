@@ -9,12 +9,19 @@ import team.godsaeng.domain.model.repository.recipe.RecipeRepository
 import javax.inject.Inject
 
 class RecipeRepositoryImpl @Inject constructor(private val cooktionaryApi: CooktionaryApi) : RecipeRepository {
+    private var recipeList: List<Recipe> = emptyList()
+
     override suspend fun fetchRecipeList(ingredientNameList: List<String>): ResponseState<List<Recipe>> {
         return try {
             val response = cooktionaryApi.getRecipeList(ingredientNameList.joinToString(","))
-            ResponseState.OnSuccess(response.data.map { it.toDomainModel() })
+            response.data.map { it.toDomainModel() }.run {
+                recipeList = this
+                ResponseState.OnSuccess(this)
+            }
         } catch (exception: CTException) {
             ResponseState.OnFailure(exception.ctError)
         }
     }
+
+    override fun getRecipeList(): List<Recipe> = recipeList
 }
