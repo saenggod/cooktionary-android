@@ -13,6 +13,8 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import team.godsaeng.cooktionary_android.model.wrapper.recipe.RecipeList
 import team.godsaeng.cooktionary_android.ui.recipe.RecipeContract.UiEffect
+import team.godsaeng.cooktionary_android.ui.recipe.RecipeContract.UiEffect.GoToProfile
+import team.godsaeng.cooktionary_android.ui.recipe.RecipeContract.UiEvent.OnClickProfile
 import team.godsaeng.cooktionary_android.ui.recipe.RecipeContract.UiEvent.OnClickSave
 import team.godsaeng.cooktionary_android.ui.recipe.RecipeContract.UiEvent.OnStarted
 import team.godsaeng.cooktionary_android.ui.recipe.RecipeContract.UiState
@@ -40,6 +42,8 @@ class RecipeViewModel @Inject constructor(
             recipeId = event.recipeId,
             isSaved = event.isSaved
         )
+
+        is OnClickProfile -> onClickProfile()
     }
 
     private fun onStarted(index: Int) {
@@ -86,6 +90,12 @@ class RecipeViewModel @Inject constructor(
                     }
                 )
             }
+        }
+    }
+
+    private fun onClickProfile() {
+        viewModelScope.launch {
+            _uiEffect.send(GoToProfile)
         }
     }
 }

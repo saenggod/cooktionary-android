@@ -13,7 +13,9 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import team.godsaeng.cooktionary_android.model.wrapper.recipe.RecipeList
 import team.godsaeng.cooktionary_android.ui.search_result.SearchResultContract.UiEffect
+import team.godsaeng.cooktionary_android.ui.search_result.SearchResultContract.UiEffect.GoToProfile
 import team.godsaeng.cooktionary_android.ui.search_result.SearchResultContract.UiEffect.GoToRecipe
+import team.godsaeng.cooktionary_android.ui.search_result.SearchResultContract.UiEvent.OnClickProfile
 import team.godsaeng.cooktionary_android.ui.search_result.SearchResultContract.UiEvent.OnClickRecipe
 import team.godsaeng.cooktionary_android.ui.search_result.SearchResultContract.UiEvent.OnRefreshed
 import team.godsaeng.cooktionary_android.ui.search_result.SearchResultContract.UiEvent.OnStarted
@@ -38,6 +40,8 @@ class SearchResultViewModel @Inject constructor(
         is OnRefreshed -> onRefreshed()
 
         is OnClickRecipe -> onClickRecipe(event.index)
+
+        is OnClickProfile -> onClickProfile()
     }
 
     private val exceptionHandler = getExceptionHandler(
@@ -96,6 +100,12 @@ class SearchResultViewModel @Inject constructor(
     private fun onClickRecipe(index: Int) {
         viewModelScope.launch {
             _uiEffect.send(GoToRecipe(index))
+        }
+    }
+
+    private fun onClickProfile() {
+        viewModelScope.launch {
+            _uiEffect.send(GoToProfile)
         }
     }
 }

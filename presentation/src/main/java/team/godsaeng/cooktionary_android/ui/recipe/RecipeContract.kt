@@ -19,9 +19,11 @@ interface RecipeContract : BaseContract<RecipeContract.UiState, RecipeContract.U
             val recipeId: Int,
             val isSaved: Boolean
         ) : UiEvent
+
+        data object OnClickProfile : UiEvent
     }
 
     sealed interface UiEffect {
-
+        data object GoToProfile : UiEffect
     }
 }
