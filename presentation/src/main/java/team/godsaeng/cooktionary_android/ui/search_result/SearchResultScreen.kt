@@ -44,12 +44,15 @@ import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import team.godsaeng.cooktionary_android.R
 import team.godsaeng.cooktionary_android.model.wrapper.recipe.RecipeList
+import team.godsaeng.cooktionary_android.ui.CollectUiEffectWithLifecycle
 import team.godsaeng.cooktionary_android.ui.LoadingDialog
 import team.godsaeng.cooktionary_android.ui.StyledText
 import team.godsaeng.cooktionary_android.ui.TopBar
 import team.godsaeng.cooktionary_android.ui.base.use
 import team.godsaeng.cooktionary_android.ui.clickableWithoutRipple
+import team.godsaeng.cooktionary_android.ui.container.ROUTE_RECIPE
 import team.godsaeng.cooktionary_android.ui.container.SEARCH_RESULT_INGREDIENTS
+import team.godsaeng.cooktionary_android.ui.search_result.SearchResultContract.UiEffect.GoToRecipe
 import team.godsaeng.cooktionary_android.ui.search_result.SearchResultContract.UiEvent
 import team.godsaeng.cooktionary_android.ui.search_result.SearchResultContract.UiEvent.OnClickRecipe
 import team.godsaeng.cooktionary_android.ui.search_result.SearchResultContract.UiEvent.OnRefreshed
@@ -75,12 +78,20 @@ fun SearchResultScreen(
     val (uiState, uiEvent, uiEffect) = use(viewModel)
     val onEvent = remember { { event: UiEvent -> uiEvent(event) } }
 
+    CollectUiEffectWithLifecycle(uiEffect) { collected ->
+        when (collected) {
+            is GoToRecipe -> navController.navigate("$ROUTE_RECIPE/${collected.index}")
+        }
+    }
+
     CompositionLocalProvider(LocalUiEvent provides onEvent) {
         val localUiEvent = LocalUiEvent.current
 
         LaunchedEffect(Unit) {
-            navController.currentBackStackEntry?.arguments?.getString(SEARCH_RESULT_INGREDIENTS)?.let {
-                localUiEvent(OnStarted(it.split(",")))
+            if (uiState.recipeList.values.isEmpty()) {
+                navController.currentBackStackEntry?.arguments?.getString(SEARCH_RESULT_INGREDIENTS)?.let {
+                    localUiEvent(OnStarted(it.split(",")))
+                }
             }
         }
 
@@ -147,7 +158,7 @@ private fun TopSection(
         }
     )
 
-    ProgressBar(50)
+    ProgressBar(0)
 }
 
 @Composable

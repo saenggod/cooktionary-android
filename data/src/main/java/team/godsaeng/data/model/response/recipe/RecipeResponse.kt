@@ -20,7 +20,7 @@ data class RecipeResponse(
                 title = title,
                 ingredientNameList = ingredients,
                 time = time,
-                score = score,
+                difficulty = score,
                 content = content,
                 imageUrl = imageUrl,
                 neededIngredientCount = 0

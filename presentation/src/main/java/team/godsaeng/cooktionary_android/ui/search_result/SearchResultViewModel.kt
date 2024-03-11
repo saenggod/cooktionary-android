@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import team.godsaeng.cooktionary_android.model.wrapper.recipe.RecipeList
 import team.godsaeng.cooktionary_android.ui.search_result.SearchResultContract.UiEffect
+import team.godsaeng.cooktionary_android.ui.search_result.SearchResultContract.UiEffect.GoToRecipe
 import team.godsaeng.cooktionary_android.ui.search_result.SearchResultContract.UiEvent.OnClickRecipe
 import team.godsaeng.cooktionary_android.ui.search_result.SearchResultContract.UiEvent.OnRefreshed
 import team.godsaeng.cooktionary_android.ui.search_result.SearchResultContract.UiEvent.OnStarted
@@ -93,6 +94,8 @@ class SearchResultViewModel @Inject constructor(
     }
 
     private fun onClickRecipe(index: Int) {
-
+        viewModelScope.launch {
+            _uiEffect.emit(GoToRecipe(index))
+        }
     }
 }
