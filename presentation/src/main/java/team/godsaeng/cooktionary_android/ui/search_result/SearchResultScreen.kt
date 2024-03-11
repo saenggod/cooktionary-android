@@ -88,8 +88,10 @@ fun SearchResultScreen(
         val localUiEvent = LocalUiEvent.current
 
         LaunchedEffect(Unit) {
-            navController.currentBackStackEntry?.arguments?.getString(SEARCH_RESULT_INGREDIENTS)?.let {
-                localUiEvent(OnStarted(it.split(",")))
+            if (uiState.recipeList.values.isEmpty()) {
+                navController.currentBackStackEntry?.arguments?.getString(SEARCH_RESULT_INGREDIENTS)?.let {
+                    localUiEvent(OnStarted(it.split(",")))
+                }
             }
         }
 

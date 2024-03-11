@@ -34,9 +34,9 @@ object NetworkModule {
             .Builder()
             .addInterceptor(errorInterceptor)
             .addInterceptor(accessTokenInterceptor)
-            .readTimeout(20, TimeUnit.SECONDS)
+            .readTimeout(30, TimeUnit.SECONDS)
             .writeTimeout(5, TimeUnit.SECONDS)
-            .connectTimeout(20, TimeUnit.SECONDS)
+            .connectTimeout(30, TimeUnit.SECONDS)
 
         if (BuildConfig.DEBUG) {
             client.addNetworkInterceptor(HttpLoggingInterceptor().apply {
