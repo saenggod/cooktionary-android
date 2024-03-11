@@ -57,6 +57,8 @@ sealed interface MainContract : BaseContract<MainContract.UiState, MainContract.
         data object OnClickReset : UiEvent
 
         data object OnClickSearch : UiEvent
+
+        data object OnClickProfile : UiEvent
     }
 
     sealed interface UiEffect {
@@ -65,5 +67,7 @@ sealed interface MainContract : BaseContract<MainContract.UiState, MainContract.
         data class ScrollTo(val index: Int) : UiEffect
 
         data class GoToSearchResult(val ingredientNames: String) : UiEffect
+
+        data object GoToProfile : UiEffect
     }
 }

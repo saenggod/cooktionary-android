@@ -50,10 +50,13 @@ import team.godsaeng.cooktionary_android.ui.StyledText
 import team.godsaeng.cooktionary_android.ui.TopBar
 import team.godsaeng.cooktionary_android.ui.base.use
 import team.godsaeng.cooktionary_android.ui.clickableWithoutRipple
+import team.godsaeng.cooktionary_android.ui.container.ROUTE_MY_PAGE
 import team.godsaeng.cooktionary_android.ui.container.ROUTE_RECIPE
 import team.godsaeng.cooktionary_android.ui.container.SEARCH_RESULT_INGREDIENTS
+import team.godsaeng.cooktionary_android.ui.search_result.SearchResultContract.UiEffect.GoToProfile
 import team.godsaeng.cooktionary_android.ui.search_result.SearchResultContract.UiEffect.GoToRecipe
 import team.godsaeng.cooktionary_android.ui.search_result.SearchResultContract.UiEvent
+import team.godsaeng.cooktionary_android.ui.search_result.SearchResultContract.UiEvent.OnClickProfile
 import team.godsaeng.cooktionary_android.ui.search_result.SearchResultContract.UiEvent.OnClickRecipe
 import team.godsaeng.cooktionary_android.ui.search_result.SearchResultContract.UiEvent.OnRefreshed
 import team.godsaeng.cooktionary_android.ui.search_result.SearchResultContract.UiEvent.OnStarted
@@ -81,6 +84,8 @@ fun SearchResultScreen(
     CollectUiEffectWithLifecycle(uiEffect) { collected ->
         when (collected) {
             is GoToRecipe -> navController.navigate("$ROUTE_RECIPE/${collected.index}")
+
+            is GoToProfile -> navController.navigate(ROUTE_MY_PAGE)
         }
     }
 
@@ -141,6 +146,8 @@ fun SearchResultScreen(
 private fun TopSection(
     userIngredientNames: String
 ) {
+    val localUiEvent = LocalUiEvent.current
+
     TopBar(
         onClickBackButton = {
 
@@ -153,9 +160,7 @@ private fun TopSection(
                 color = TextColorGrey1
             )
         },
-        onClickProfileIcon = {
-
-        }
+        onClickProfileIcon = { localUiEvent(OnClickProfile) }
     )
 
     ProgressBar(0)

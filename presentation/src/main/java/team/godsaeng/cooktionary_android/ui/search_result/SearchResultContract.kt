@@ -20,9 +20,13 @@ interface SearchResultContract : BaseContract<SearchResultContract.UiState, Sear
         data object OnRefreshed : UiEvent
 
         data class OnClickRecipe(val index: Int) : UiEvent
+
+        data object OnClickProfile : UiEvent
     }
 
     sealed interface UiEffect {
         data class GoToRecipe(val index: Int) : UiEffect
+
+        data object GoToProfile : UiEffect
     }
 }

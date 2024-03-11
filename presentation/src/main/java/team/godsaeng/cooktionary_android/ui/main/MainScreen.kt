@@ -79,8 +79,10 @@ import team.godsaeng.cooktionary_android.ui.alpha
 import team.godsaeng.cooktionary_android.ui.base.use
 import team.godsaeng.cooktionary_android.ui.branchedModifier
 import team.godsaeng.cooktionary_android.ui.clickableWithoutRipple
+import team.godsaeng.cooktionary_android.ui.container.ROUTE_MY_PAGE
 import team.godsaeng.cooktionary_android.ui.container.ROUTE_SEARCH_RESULT
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEffect.ClearFocus
+import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEffect.GoToProfile
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEffect.ScrollTo
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEffect.GoToSearchResult
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent
@@ -90,6 +92,7 @@ import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnButtonOr
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnClickAddDisplay
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnClickButton
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnClickDisplay
+import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnClickProfile
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnClickRemoveDisplay
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnClickReset
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnClickSearch
@@ -125,6 +128,8 @@ fun MainScreen(
             is ScrollTo -> lazyListState.animateScrollToItem(collected.index * 2)
 
             is GoToSearchResult -> navController.navigate("$ROUTE_SEARCH_RESULT/${collected.ingredientNames}")
+
+            is GoToProfile -> navController.navigate(ROUTE_MY_PAGE)
         }
     }
 
@@ -171,7 +176,7 @@ private fun TopSection(displayCount: Int) {
     val localUiEvent = LocalUiEvent.current
 
     TopBar(
-        onClickProfileIcon = { /*TODO*/ },
+        onClickProfileIcon = { localUiEvent(OnClickProfile) },
         middleContents = {
             Row(verticalAlignment = CenterVertically) {
                 Icon(

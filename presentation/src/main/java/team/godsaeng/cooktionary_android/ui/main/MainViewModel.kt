@@ -17,6 +17,7 @@ import team.godsaeng.cooktionary_android.model.wrapper.ingredient.NotNullIngredi
 import team.godsaeng.cooktionary_android.model.wrapper.ingredient.NullableIngredientList
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEffect
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEffect.ClearFocus
+import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEffect.GoToProfile
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEffect.GoToSearchResult
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEffect.ScrollTo
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnButtonDragged
@@ -25,6 +26,7 @@ import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnButtonOr
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnClickAddDisplay
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnClickButton
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnClickDisplay
+import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnClickProfile
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnClickRemoveDisplay
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnClickReset
 import team.godsaeng.cooktionary_android.ui.main.MainContract.UiEvent.OnClickSearch
@@ -85,6 +87,8 @@ class MainViewModel @Inject constructor(
         is OnClickReset -> onClickReset()
 
         is OnClickSearch -> onClickSearch()
+
+        is OnClickProfile -> onClickProfile()
     }
 
     private val exceptionHandler = getExceptionHandler(
@@ -277,6 +281,12 @@ class MainViewModel @Inject constructor(
     private fun onClickSearch() {
         viewModelScope.launch {
             _uiEffect.send(GoToSearchResult(uiState.value.displayList.values.joinToString(",") { it?.name ?: "" }))
+        }
+    }
+
+    private fun onClickProfile() {
+        viewModelScope.launch {
+            _uiEffect.send(GoToProfile)
         }
     }
 }
