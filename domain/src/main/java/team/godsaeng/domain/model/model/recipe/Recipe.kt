@@ -10,7 +10,8 @@ data class Recipe(
     val difficulty: String,
     val content: String,
     val imageUrl: String,
-    val neededIngredientCount: Int
+    val neededIngredientCount: Int,
+    val isSaved: Boolean
 ) : BaseModel {
     fun difficultyToLevel(): Int = when (difficulty) {
         DIFFICULTY_HIGH -> 3

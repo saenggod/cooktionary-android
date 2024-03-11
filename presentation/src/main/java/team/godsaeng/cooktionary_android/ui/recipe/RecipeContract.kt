@@ -14,6 +14,11 @@ interface RecipeContract : BaseContract<RecipeContract.UiState, RecipeContract.U
 
     sealed interface UiEvent {
         data class OnStarted(val index: Int) : UiEvent
+
+        data class OnClickSave(
+            val recipeId: Int,
+            val isSaved: Boolean
+        ) : UiEvent
     }
 
     sealed interface UiEffect {

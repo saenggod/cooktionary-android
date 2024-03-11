@@ -24,4 +24,22 @@ class RecipeRepositoryImpl @Inject constructor(private val cooktionaryApi: Cookt
     }
 
     override fun getRecipeList(): List<Recipe> = recipeList
+
+    override suspend fun saveRecipe(recipeId: Int): ResponseState<Unit> {
+        return try {
+            cooktionaryApi.postRecipeSaving(recipeId)
+            ResponseState.OnSuccess(Unit)
+        } catch (exception: CTException) {
+            ResponseState.OnFailure(exception.ctError)
+        }
+    }
+
+    override suspend fun deleteRecipe(recipeId: Int): ResponseState<Unit> {
+        return try {
+            cooktionaryApi.deleteSavedRecipe(recipeId)
+            ResponseState.OnSuccess(Unit)
+        } catch (exception: CTException) {
+            ResponseState.OnFailure(exception.ctError)
+        }
+    }
 }
