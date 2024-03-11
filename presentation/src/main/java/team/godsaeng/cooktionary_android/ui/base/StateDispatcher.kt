@@ -3,7 +3,7 @@ package team.godsaeng.cooktionary_android.ui.base
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.Flow
 
 @Composable
 inline fun <reified STATE, EVENT, EFFECT> use(
@@ -25,5 +25,5 @@ inline fun <reified STATE, EVENT, EFFECT> use(
 data class StateDispatchEffect<STATE, EVENT, EFFECT>(
     val state: STATE,
     val dispatch: (EVENT) -> Unit,
-    val effectFlow: SharedFlow<EFFECT>,
+    val effectFlow: Flow<EFFECT>,
 )

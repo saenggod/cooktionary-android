@@ -3,12 +3,12 @@ package team.godsaeng.cooktionary_android.ui.search_result
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import team.godsaeng.cooktionary_android.model.wrapper.recipe.RecipeList
@@ -29,11 +29,11 @@ class SearchResultViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(UiState())
     override val uiState: StateFlow<UiState> = _uiState.asStateFlow()
 
-    private val _uiEffect = MutableSharedFlow<UiEffect>()
-    override val uiEffect: SharedFlow<UiEffect> = _uiEffect.asSharedFlow()
+    private val _uiEffect: Channel<UiEffect> = Channel(capacity = Channel.BUFFERED)
+    override val uiEffect: Flow<UiEffect> = _uiEffect.receiveAsFlow()
 
     override fun uiEvent(event: SearchResultContract.UiEvent) = when (event) {
-        is OnStarted -> onStart(event.ingredientNameList)
+        is OnStarted -> onStarted(event.ingredientNameList)
 
         is OnRefreshed -> onRefreshed()
 
@@ -44,7 +44,7 @@ class SearchResultViewModel @Inject constructor(
         onUnknownHostException = {}
     )
 
-    private fun onStart(ingredientNameList: List<String>) {
+    private fun onStarted(ingredientNameList: List<String>) {
         _uiState.update {
             it.copy(userIngredientNameList = ingredientNameList)
         }
@@ -95,7 +95,7 @@ class SearchResultViewModel @Inject constructor(
 
     private fun onClickRecipe(index: Int) {
         viewModelScope.launch {
-            _uiEffect.emit(GoToRecipe(index))
+            _uiEffect.send(GoToRecipe(index))
         }
     }
 }

@@ -13,7 +13,7 @@ import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.lifecycle.flowWithLifecycle
-import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.Flow
 
 @Composable
 fun dpToSp(dp: Dp): TextUnit = with(LocalDensity.current) { dp.toSp() }
@@ -57,7 +57,7 @@ inline fun branchedModifier(
 
 @Composable
 fun <T> CollectUiEffectWithLifecycle(
-    uiEffect: SharedFlow<T>,
+    uiEffect: Flow<T>,
     onCollect: suspend (T) -> Unit
 ) {
     val lifecycle = LocalLifecycleOwner.current.lifecycle
