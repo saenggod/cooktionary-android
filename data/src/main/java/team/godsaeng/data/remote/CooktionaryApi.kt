@@ -40,12 +40,12 @@ interface CooktionaryApi {
         @Query("q") ingredientNames: String
     ): CTResponse<List<RecipeResponse>>
 
-    @POST("recipe/save/{recipeId}")
+    @POST("user/recipe/save/{recipeId}")
     suspend fun postRecipeSaving(
         @Path("recipeId") recipeId: Int
     )
 
-    @DELETE("recipe/delete/{recipeId}")
+    @DELETE("user/recipe/delete/{recipeId}")
     suspend fun deleteSavedRecipe(
         @Path("recipeId") recipeId: Int
     )

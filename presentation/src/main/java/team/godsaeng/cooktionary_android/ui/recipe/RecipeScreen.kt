@@ -41,6 +41,7 @@ import team.godsaeng.cooktionary_android.ui.TopBar
 import team.godsaeng.cooktionary_android.ui.base.use
 import team.godsaeng.cooktionary_android.ui.container.RECIPE_RECIPE_INDEX
 import team.godsaeng.cooktionary_android.ui.recipe.RecipeContract.UiEvent
+import team.godsaeng.cooktionary_android.ui.recipe.RecipeContract.UiEvent.OnClickSave
 import team.godsaeng.cooktionary_android.ui.recipe.RecipeContract.UiEvent.OnStarted
 import team.godsaeng.cooktionary_android.ui.theme.PointColor
 import team.godsaeng.cooktionary_android.ui.theme.RecipeDetailTextColor
@@ -102,6 +103,8 @@ fun RecipeScreen(
 
 @Composable
 fun RecipeDetail(recipe: Recipe) {
+    val localUiEvent = LocalUiEvent.current
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -131,7 +134,17 @@ fun RecipeDetail(recipe: Recipe) {
                     fontSize = 18
                 )
 
-                ScrapButton(onClick = {})
+                ScrapButton(
+                    isSaved = recipe.isSaved,
+                    onClick = {
+                        localUiEvent(
+                            OnClickSave(
+                                recipeId = recipe.id,
+                                isSaved = recipe.isSaved
+                            )
+                        )
+                    }
+                )
             }
 
             Spacer(modifier = Modifier.height(8.dp))

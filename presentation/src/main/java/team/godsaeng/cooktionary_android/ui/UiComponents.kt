@@ -144,11 +144,12 @@ fun SimpleTextField(
 @Composable
 inline fun ScrapButton(
     modifier: Modifier = Modifier,
+    isSaved: Boolean,
     crossinline onClick: () -> Unit
 ) {
     Image(
         modifier = modifier.clickableWithoutRipple { onClick() },
-        painter = painterResource(id = R.drawable.ic_scrap),
+        painter = painterResource(id = if (isSaved) R.drawable.ic_scrap_filled else R.drawable.ic_scrap),
         contentDescription = null
     )
 }

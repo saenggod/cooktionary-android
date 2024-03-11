@@ -23,7 +23,8 @@ data class RecipeResponse(
                 difficulty = score,
                 content = content,
                 imageUrl = imageUrl,
-                neededIngredientCount = 0
+                neededIngredientCount = 0,
+                isSaved = false
             )
         }
     }
