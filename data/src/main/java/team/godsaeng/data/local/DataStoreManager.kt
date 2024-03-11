@@ -22,6 +22,12 @@ class DataStoreManager @Inject constructor(private val dataStore: DataStore<Pref
         it[stringPreferencesKey(key)]
     }
 
+    suspend fun removeData() {
+        dataStore.edit {
+            it.clear()
+        }
+    }
+
     companion object {
         const val KEY_OAUTH_PLATFORM = "key_oauth_platform"
     }

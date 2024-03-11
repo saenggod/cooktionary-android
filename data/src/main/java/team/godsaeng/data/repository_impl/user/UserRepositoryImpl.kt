@@ -56,6 +56,10 @@ class UserRepositoryImpl @Inject constructor(
 
     override fun loadStoredOAuthPlatform(): Flow<String?> = dataStoreManager.loadStringData(DataStoreManager.KEY_OAUTH_PLATFORM)
 
+    override suspend fun removeUserData() {
+        dataStoreManager.removeData()
+    }
+
     companion object {
         private const val GOOGLE_ACCOUNT_INFO_REQUEST_URL = "https://oauth2.googleapis.com/token"
     }

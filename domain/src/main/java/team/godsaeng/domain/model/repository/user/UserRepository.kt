@@ -18,4 +18,6 @@ interface UserRepository {
     suspend fun storeOAuthPlatform(data: String)
 
     fun loadStoredOAuthPlatform(): Flow<String?>
+
+    suspend fun removeUserData()
 }
