@@ -14,6 +14,8 @@ interface MyInfoContract : BaseContract<MyInfoContract.UiState, MyInfoContract.U
     }
 
     sealed interface UiEffect {
+        data object GoToOnBoarding : UiEffect
+
         data object GoToSecession : UiEffect
     }
 }

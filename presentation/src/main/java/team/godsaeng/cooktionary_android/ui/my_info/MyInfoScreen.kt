@@ -30,9 +30,13 @@ import team.godsaeng.cooktionary_android.ui.StyledText
 import team.godsaeng.cooktionary_android.ui.TopBar
 import team.godsaeng.cooktionary_android.ui.base.use
 import team.godsaeng.cooktionary_android.ui.clickableWithoutRipple
+import team.godsaeng.cooktionary_android.ui.container.ROUTE_ON_BOARDING
 import team.godsaeng.cooktionary_android.ui.container.ROUTE_SECESSION
+import team.godsaeng.cooktionary_android.ui.container.buildInclusivePopUpOption
+import team.godsaeng.cooktionary_android.ui.my_info.MyInfoContract.UiEffect.GoToOnBoarding
 import team.godsaeng.cooktionary_android.ui.my_info.MyInfoContract.UiEffect.GoToSecession
 import team.godsaeng.cooktionary_android.ui.my_info.MyInfoContract.UiEvent
+import team.godsaeng.cooktionary_android.ui.my_info.MyInfoContract.UiEvent.OnClickLogout
 import team.godsaeng.cooktionary_android.ui.my_info.MyInfoContract.UiEvent.OnClickSecession
 import team.godsaeng.cooktionary_android.ui.theme.DividerColor
 import team.godsaeng.cooktionary_android.ui.theme.TextColorGrey5
@@ -51,6 +55,11 @@ fun MyInfoScreen(
 
     CollectUiEffectWithLifecycle(uiEffect) { collected ->
         when (collected) {
+            is GoToOnBoarding -> navController.navigate(
+                route = ROUTE_ON_BOARDING,
+                navOptions = buildInclusivePopUpOption(ROUTE_ON_BOARDING)
+            )
+
             is GoToSecession -> navController.navigate(ROUTE_SECESSION)
         }
     }
@@ -62,7 +71,7 @@ fun MyInfoScreen(
                 .background(color = MaterialTheme.colors.background)
         ) {
             TopBar(
-                onClickBackButton = {},
+                onClickBackButton = { },
                 middleContents = {
                     StyledText(
                         stringId = R.string.my_info,
@@ -135,16 +144,18 @@ private fun InfoItem(
 
 @Composable
 private fun LogoutSection() {
+    val localUiEvent = LocalUiEvent.current
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .height(58.dp)
-            .clickableWithoutRipple { }
     ) {
         StyledText(
             modifier = Modifier
                 .align(CenterStart)
-                .padding(horizontal = 16.dp),
+                .padding(horizontal = 16.dp)
+                .clickableWithoutRipple { localUiEvent(OnClickLogout) },
             stringId = R.string.logout,
             style = Typography.bodyLarge,
             fontSize = 14,

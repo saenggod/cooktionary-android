@@ -8,6 +8,7 @@ import dagger.hilt.android.scopes.ViewModelScoped
 import team.godsaeng.domain.model.repository.user.UserRepository
 import team.godsaeng.domain.model.use_case.user.GetGoogleAccessTokenUseCase
 import team.godsaeng.domain.model.use_case.user.LoadStoredOAuthPlatformUseCase
+import team.godsaeng.domain.model.use_case.user.RemoveUserDataUseCase
 import team.godsaeng.domain.model.use_case.user.StoreOAuthPlatformUseCase
 import team.godsaeng.domain.model.use_case.user.VerifyUserUseCase
 
@@ -30,4 +31,8 @@ object UserUseCaseModule {
     @Provides
     @ViewModelScoped
     fun provideLoadStoredOAuthPlatformUseCase(userRepository: UserRepository): LoadStoredOAuthPlatformUseCase = LoadStoredOAuthPlatformUseCase(userRepository)
+
+    @Provides
+    @ViewModelScoped
+    fun provideRemoveUserDataUseCase(userRepository: UserRepository): RemoveUserDataUseCase = RemoveUserDataUseCase(userRepository)
 }
