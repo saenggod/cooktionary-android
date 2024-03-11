@@ -12,8 +12,10 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import team.godsaeng.cooktionary_android.ui.my_page.MyPageContract.UiEffect
+import team.godsaeng.cooktionary_android.ui.my_page.MyPageContract.UiEffect.GoToMyInfo
 import team.godsaeng.cooktionary_android.ui.my_page.MyPageContract.UiEffect.GoToPrivacyTerms
 import team.godsaeng.cooktionary_android.ui.my_page.MyPageContract.UiEffect.GoToServiceTerms
+import team.godsaeng.cooktionary_android.ui.my_page.MyPageContract.UiEvent.OnClickAccount
 import team.godsaeng.cooktionary_android.ui.my_page.MyPageContract.UiEvent.OnClickPrivacyTerms
 import team.godsaeng.cooktionary_android.ui.my_page.MyPageContract.UiEvent.OnClickSavedRecipeList
 import team.godsaeng.cooktionary_android.ui.my_page.MyPageContract.UiEvent.OnClickServiceTerms
@@ -29,11 +31,19 @@ class MyPageViewModel @Inject constructor() : ViewModel(), MyPageContract {
     override val uiEffect: Flow<UiEffect> = _uiEffect.receiveAsFlow()
 
     override fun uiEvent(event: MyPageContract.UiEvent) = when (event) {
+        is OnClickAccount -> onClickAccount()
+
         is OnClickSavedRecipeList -> onClickSavedRecipeList()
 
         is OnClickServiceTerms -> onClickServiceTerms()
 
         is OnClickPrivacyTerms -> onClickPrivacyTerms()
+    }
+
+    private fun onClickAccount() {
+        viewModelScope.launch {
+            _uiEffect.send(GoToMyInfo)
+        }
     }
 
     private fun onClickSavedRecipeList() {

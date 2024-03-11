@@ -8,6 +8,8 @@ interface MyPageContract : BaseContract<MyPageContract.UiState, MyPageContract.U
     )
 
     sealed interface UiEvent {
+        data object OnClickAccount : UiEvent
+
         data object OnClickSavedRecipeList : UiEvent
 
         data object OnClickServiceTerms : UiEvent
@@ -16,6 +18,8 @@ interface MyPageContract : BaseContract<MyPageContract.UiState, MyPageContract.U
     }
 
     sealed interface UiEffect {
+        data object GoToMyInfo : UiEffect
+
         data object GoToSavedRecipeList : UiEffect
 
         data object GoToServiceTerms : UiEffect

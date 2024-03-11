@@ -41,10 +41,13 @@ import team.godsaeng.cooktionary_android.ui.TopBar
 import team.godsaeng.cooktionary_android.ui.alpha
 import team.godsaeng.cooktionary_android.ui.base.use
 import team.godsaeng.cooktionary_android.ui.clickableWithoutRipple
+import team.godsaeng.cooktionary_android.ui.container.ROUTE_MY_INFO
+import team.godsaeng.cooktionary_android.ui.my_page.MyPageContract.UiEffect.GoToMyInfo
 import team.godsaeng.cooktionary_android.ui.my_page.MyPageContract.UiEffect.GoToPrivacyTerms
 import team.godsaeng.cooktionary_android.ui.my_page.MyPageContract.UiEffect.GoToSavedRecipeList
 import team.godsaeng.cooktionary_android.ui.my_page.MyPageContract.UiEffect.GoToServiceTerms
 import team.godsaeng.cooktionary_android.ui.my_page.MyPageContract.UiEvent
+import team.godsaeng.cooktionary_android.ui.my_page.MyPageContract.UiEvent.OnClickAccount
 import team.godsaeng.cooktionary_android.ui.my_page.MyPageContract.UiEvent.OnClickPrivacyTerms
 import team.godsaeng.cooktionary_android.ui.my_page.MyPageContract.UiEvent.OnClickSavedRecipeList
 import team.godsaeng.cooktionary_android.ui.my_page.MyPageContract.UiEvent.OnClickServiceTerms
@@ -68,6 +71,8 @@ fun MyPageScreen(
 
     CollectUiEffectWithLifecycle(uiEffect) { collected ->
         when (collected) {
+            is GoToMyInfo -> navController.navigate(ROUTE_MY_INFO)
+
             is GoToSavedRecipeList -> Unit
 
             is GoToServiceTerms -> context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://www.notion.so/3fb3e86aafd047d38d8fd947c11824b9")))
@@ -124,6 +129,8 @@ fun MyPageScreen(
 
 @Composable
 private fun UserSection() {
+    val localUiEvent = LocalUiEvent.current
+
     Row(
         modifier = Modifier
             .clip(shape = RoundedCornerShape(10.dp))
@@ -135,7 +142,8 @@ private fun UserSection() {
                 color = Color.Black.alpha(3),
                 shape = RoundedCornerShape(10.dp)
             )
-            .padding(16.dp),
+            .padding(16.dp)
+            .clickableWithoutRipple { localUiEvent(OnClickAccount) },
         horizontalArrangement = SpaceBetween,
         verticalAlignment = CenterVertically
     ) {
