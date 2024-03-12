@@ -1,5 +1,7 @@
 package team.godsaeng.cooktionary_android.ui.search_result
 
+import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -8,6 +10,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -17,7 +20,11 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.pullrefresh.pullRefresh
@@ -46,23 +53,25 @@ import team.godsaeng.cooktionary_android.R
 import team.godsaeng.cooktionary_android.model.wrapper.recipe.RecipeList
 import team.godsaeng.cooktionary_android.ui.CollectUiEffectWithLifecycle
 import team.godsaeng.cooktionary_android.ui.LoadingDialog
+import team.godsaeng.cooktionary_android.ui.ScrapButton
 import team.godsaeng.cooktionary_android.ui.StyledText
 import team.godsaeng.cooktionary_android.ui.TopBar
 import team.godsaeng.cooktionary_android.ui.base.use
 import team.godsaeng.cooktionary_android.ui.clickableWithoutRipple
 import team.godsaeng.cooktionary_android.ui.container.ROUTE_MY_PAGE
-import team.godsaeng.cooktionary_android.ui.container.ROUTE_RECIPE
 import team.godsaeng.cooktionary_android.ui.container.SEARCH_RESULT_INGREDIENTS
 import team.godsaeng.cooktionary_android.ui.search_result.SearchResultContract.UiEffect.GoToProfile
-import team.godsaeng.cooktionary_android.ui.search_result.SearchResultContract.UiEffect.GoToRecipe
 import team.godsaeng.cooktionary_android.ui.search_result.SearchResultContract.UiEvent
+import team.godsaeng.cooktionary_android.ui.search_result.SearchResultContract.UiEvent.OnBackPressed
 import team.godsaeng.cooktionary_android.ui.search_result.SearchResultContract.UiEvent.OnClickProfile
 import team.godsaeng.cooktionary_android.ui.search_result.SearchResultContract.UiEvent.OnClickRecipe
+import team.godsaeng.cooktionary_android.ui.search_result.SearchResultContract.UiEvent.OnClickSaveRecipe
 import team.godsaeng.cooktionary_android.ui.search_result.SearchResultContract.UiEvent.OnRefreshed
 import team.godsaeng.cooktionary_android.ui.search_result.SearchResultContract.UiEvent.OnStarted
 import team.godsaeng.cooktionary_android.ui.theme.ImagePlaceHolderColor
 import team.godsaeng.cooktionary_android.ui.theme.PointColor
 import team.godsaeng.cooktionary_android.ui.theme.ProgressBackgroundColor
+import team.godsaeng.cooktionary_android.ui.theme.RecipeDetailTextColor
 import team.godsaeng.cooktionary_android.ui.theme.TextColorGrey1
 import team.godsaeng.cooktionary_android.ui.theme.TextColorGrey2
 import team.godsaeng.cooktionary_android.ui.theme.TextColorGrey3
@@ -72,7 +81,6 @@ import team.godsaeng.domain.model.model.recipe.Recipe
 
 private val LocalUiEvent = compositionLocalOf { { _: UiEvent -> } }
 
-@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun SearchResultScreen(
     navController: NavController,
@@ -83,8 +91,6 @@ fun SearchResultScreen(
 
     CollectUiEffectWithLifecycle(uiEffect) { collected ->
         when (collected) {
-            is GoToRecipe -> navController.navigate("$ROUTE_RECIPE/${collected.index}")
-
             is GoToProfile -> navController.navigate(ROUTE_MY_PAGE)
         }
     }
@@ -100,43 +106,105 @@ fun SearchResultScreen(
             }
         }
 
-        val pullRefreshState = rememberPullRefreshState(
-            refreshing = uiState.isRefreshing,
-            onRefresh = { localUiEvent(OnRefreshed) },
-            refreshThreshold = 80.dp
-        )
-
         Box {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(color = MaterialTheme.colors.background)
-            ) {
-                TopSection(
-                    userIngredientNames = uiState.userIngredientNameList.joinToString(", ")
+            if (uiState.isPagerMode) {
+                RecipePagerScreen(
+                    recipeList = uiState.recipeList,
+                    startIndex = uiState.startIndex
                 )
 
-                Spacer(modifier = Modifier.height(20.dp))
-
-                Column(modifier = Modifier.pullRefresh(pullRefreshState)) {
-                    PullToRefreshSection(
-                        fraction = pullRefreshState.progress.coerceIn(0f..1f)
-                    )
-
-                    SearchResultDescSection(
-                        recipeCount = uiState.recipeList.values.size
-                    )
-
-                    Spacer(modifier = Modifier.height(20.dp))
-
-                    SearchResultSection(
-                        recipeList = uiState.recipeList
-                    )
+                BackHandler {
+                    localUiEvent(OnBackPressed)
                 }
+            } else {
+                RecipeListScreen(
+                    isRefreshing = uiState.isRefreshing,
+                    userIngredientNames = uiState.userIngredientNameList.joinToString(", "),
+                    recipeList = uiState.recipeList
+                )
             }
 
             if (uiState.isLoading) {
                 LoadingDialog()
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterialApi::class)
+@Composable
+private fun RecipeListScreen(
+    isRefreshing: Boolean,
+    userIngredientNames: String,
+    recipeList: RecipeList
+) {
+    val localUiEvent = LocalUiEvent.current
+    val pullRefreshState = rememberPullRefreshState(
+        refreshing = isRefreshing,
+        onRefresh = { localUiEvent(OnRefreshed) },
+        refreshThreshold = 80.dp
+    )
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(color = MaterialTheme.colors.background)
+    ) {
+        TopSection(
+            userIngredientNames = userIngredientNames
+        )
+
+        Spacer(modifier = Modifier.height(20.dp))
+
+        Column(modifier = Modifier.pullRefresh(pullRefreshState)) {
+            PullToRefreshSection(
+                fraction = pullRefreshState.progress.coerceIn(0f..1f)
+            )
+
+            SearchResultDescSection(
+                recipeCount = recipeList.values.size
+            )
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            SearchResultSection(
+                recipeList = recipeList
+            )
+        }
+    }
+}
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+private fun RecipePagerScreen(
+    recipeList: RecipeList,
+    startIndex: Int
+) {
+    val localUiEvent = LocalUiEvent.current
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.White)
+    ) {
+        if (recipeList.values.isNotEmpty()) {
+            Column(modifier = Modifier.fillMaxSize()) {
+                TopBar(
+                    onClickBackButton = {},
+                    middleContents = {},
+                    onClickProfileIcon = { localUiEvent(OnClickProfile) }
+                )
+
+                HorizontalPager(
+                    state = rememberPagerState(
+                        initialPage = startIndex,
+                        initialPageOffsetFraction = 0f,
+                        pageCount = { recipeList.values.size }
+                    ),
+                    modifier = Modifier.fillMaxSize(),
+                ) { index ->
+                    RecipeDetail(recipeList.values[index])
+                }
             }
         }
     }
@@ -320,11 +388,145 @@ private fun Recipe(
                 )
             }
 
+            ScrapButton(
+                isSaved = recipe.isSaved,
+                onClick = {
+                    localUiEvent(
+                        OnClickSaveRecipe(
+                            recipeId = recipe.id,
+                            isSaved = recipe.isSaved
+                        )
+                    )
+                }
+            )
+        }
+    }
+}
+
+
+@Composable
+private fun RecipeDetail(recipe: Recipe) {
+    val localUiEvent = LocalUiEvent.current
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .background(color = MaterialTheme.colors.background)
+    ) {
+        AsyncImage(
+            modifier = Modifier
+                .fillMaxWidth()
+                .aspectRatio(1f),
+            model = recipe.imageUrl,
+            contentScale = Crop,
+            contentDescription = null
+        )
+
+        Spacer(modifier = Modifier.height(18.dp))
+
+        Column(modifier = Modifier.padding(horizontal = 16.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                StyledText(
+                    text = recipe.title,
+                    style = Typography.bodyMedium,
+                    fontSize = 18
+                )
+
+                ScrapButton(
+                    isSaved = recipe.isSaved,
+                    onClick = {
+                        localUiEvent(
+                            OnClickSaveRecipe(
+                                recipeId = recipe.id,
+                                isSaved = recipe.isSaved
+                            )
+                        )
+                    }
+                )
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                DifficultySection(recipe.difficultyToLevel())
+
+                Spacer(modifier = Modifier.width(16.dp))
+
+                TimeSection(recipe.time)
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            StyledText(
+                text = recipe.content,
+                style = Typography.bodyMedium,
+                fontSize = 14,
+                color = RecipeDetailTextColor,
+                lineHeight = 1.5f
+            )
+
+            Spacer(modifier = Modifier.height(24.dp))
+        }
+    }
+}
+
+@Composable
+private fun DifficultySection(difficulty: Int) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        StyledText(
+            stringId = R.string.difficulty,
+            style = Typography.bodyMedium,
+            fontSize = 12,
+            color = PointColor
+        )
+
+        Spacer(modifier = Modifier.width(4.dp))
+
+        repeat(3 - difficulty) {
             Image(
-                modifier = Modifier.padding(6.dp),
-                painter = painterResource(R.drawable.ic_scrap),
+                painter = painterResource(R.drawable.ic_star_empty),
                 contentDescription = null
             )
         }
+
+        repeat(difficulty) {
+            Image(
+                painter = painterResource(R.drawable.ic_star_filled),
+                contentDescription = null
+            )
+        }
+    }
+}
+
+@Composable
+private fun TimeSection(time: String) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        StyledText(
+            stringId = R.string.cooking_time,
+            style = Typography.bodyMedium,
+            fontSize = 12,
+            color = PointColor
+        )
+
+        Spacer(modifier = Modifier.width(4.dp))
+
+        Image(
+            painter = painterResource(R.drawable.ic_time),
+            contentDescription = null
+        )
+
+        Spacer(modifier = Modifier.width(1.5.dp))
+
+        StyledText(
+            text = time,
+            style = Typography.bodyMedium,
+            fontSize = 10,
+            color = PointColor
+        )
     }
 }
