@@ -1,8 +1,10 @@
 package team.godsaeng.cooktionary_android.ui.my_page
 
+import androidx.compose.runtime.Immutable
 import team.godsaeng.cooktionary_android.ui.base.BaseContract
 
 interface MyPageContract : BaseContract<MyPageContract.UiState, MyPageContract.UiEvent, MyPageContract.UiEffect> {
+    @Immutable
     data class UiState(
         val isLoading: Boolean = false
     )

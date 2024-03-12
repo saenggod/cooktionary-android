@@ -49,4 +49,7 @@ interface CooktionaryApi {
     suspend fun deleteSavedRecipe(
         @Path("recipeId") recipeId: Int
     )
+
+    @GET("user/recipe")
+    suspend fun getSavedRecipeList(): CTResponse<List<RecipeResponse>>
 }

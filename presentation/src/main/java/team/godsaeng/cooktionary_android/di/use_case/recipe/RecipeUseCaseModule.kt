@@ -8,6 +8,7 @@ import dagger.hilt.android.scopes.ViewModelScoped
 import team.godsaeng.domain.model.repository.recipe.RecipeRepository
 import team.godsaeng.domain.model.use_case.recipe.DeleteSavedRecipeUseCase
 import team.godsaeng.domain.model.use_case.recipe.GetRecipeListUseCase
+import team.godsaeng.domain.model.use_case.recipe.GetSavedRecipeListUseCase
 import team.godsaeng.domain.model.use_case.recipe.SaveRecipeUseCase
 
 @Module
@@ -25,4 +26,8 @@ object RecipeUseCaseModule {
     @Provides
     @ViewModelScoped
     fun provideDeleteRecipeUseCase(recipeRepository: RecipeRepository): DeleteSavedRecipeUseCase = DeleteSavedRecipeUseCase(recipeRepository)
+
+    @Provides
+    @ViewModelScoped
+    fun provideSavedRecipeUseCase(recipeRepository: RecipeRepository): GetSavedRecipeListUseCase = GetSavedRecipeListUseCase(recipeRepository)
 }
