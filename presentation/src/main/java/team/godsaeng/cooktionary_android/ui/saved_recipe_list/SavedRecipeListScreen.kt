@@ -49,7 +49,10 @@ import team.godsaeng.cooktionary_android.ui.StyledText
 import team.godsaeng.cooktionary_android.ui.TopBar
 import team.godsaeng.cooktionary_android.ui.base.use
 import team.godsaeng.cooktionary_android.ui.clickableWithoutRipple
+import team.godsaeng.cooktionary_android.ui.container.ROUTE_MAIN
 import team.godsaeng.cooktionary_android.ui.container.ROUTE_MY_PAGE
+import team.godsaeng.cooktionary_android.ui.container.ROUTE_ON_BOARDING
+import team.godsaeng.cooktionary_android.ui.container.buildInclusivePopUpOption
 import team.godsaeng.cooktionary_android.ui.saved_recipe_list.SavedRecipeListContract.UiEffect.GoToProfile
 import team.godsaeng.cooktionary_android.ui.saved_recipe_list.SavedRecipeListContract.UiEvent
 import team.godsaeng.cooktionary_android.ui.saved_recipe_list.SavedRecipeListContract.UiEvent.OnBackPressed
@@ -78,7 +81,10 @@ fun SavedRecipeListScreen(
 
     CollectUiEffectWithLifecycle(uiEffect) { collected ->
         when (collected) {
-            is GoToProfile -> navController.navigate(ROUTE_MY_PAGE)
+            is GoToProfile -> navController.navigate(
+                route = ROUTE_MY_PAGE,
+                navOptions = buildInclusivePopUpOption(ROUTE_MY_PAGE)
+            )
         }
     }
 
