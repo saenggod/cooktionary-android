@@ -8,10 +8,12 @@ interface SearchResultContract : BaseContract<SearchResultContract.UiState, Sear
     @Immutable
     data class UiState(
         val isLoading: Boolean = false,
+        val isPagerMode: Boolean = false,
         val pullFraction: Float = 0f,
         val isRefreshing: Boolean = false,
         val userIngredientNameList: List<String> = emptyList(),
-        val recipeList: RecipeList = RecipeList(emptyList())
+        val recipeList: RecipeList = RecipeList(emptyList()),
+        val startIndex: Int = 0,
     )
 
     sealed interface UiEvent {
@@ -22,11 +24,16 @@ interface SearchResultContract : BaseContract<SearchResultContract.UiState, Sear
         data class OnClickRecipe(val index: Int) : UiEvent
 
         data object OnClickProfile : UiEvent
+
+        data class OnClickSaveRecipe(
+            val recipeId: Int,
+            val isSaved: Boolean
+        ) : UiEvent
+
+        data object OnBackPressed : UiEvent
     }
 
     sealed interface UiEffect {
-        data class GoToRecipe(val index: Int) : UiEffect
-
         data object GoToProfile : UiEffect
     }
 }

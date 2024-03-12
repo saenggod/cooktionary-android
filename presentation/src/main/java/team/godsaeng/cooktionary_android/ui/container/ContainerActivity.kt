@@ -50,10 +50,7 @@ private fun ContainerScreen() {
                 destination = "${Destination.SEARCH_RESULT.route}/{$SEARCH_RESULT_INGREDIENTS}",
                 arguments = listOf(navArgument(SEARCH_RESULT_INGREDIENTS) { type = NavType.StringType })
             ) { SearchResultScreen(this) }
-            navScreen(
-                destination = "${Destination.RECIPE.route}/{$RECIPE_RECIPE_INDEX}",
-                arguments = listOf(navArgument(RECIPE_RECIPE_INDEX) { type = NavType.IntType })
-            ) { RecipeScreen(this) }
+            navScreen(Destination.RECIPE.route) { RecipeScreen(this) }
             navScreen(Destination.MY_PAGE.route) { MyPageScreen(this) }
             navScreen(Destination.MY_INFO.route) { MyInfoScreen(this) }
             navScreen(Destination.SECESSION.route) { SecessionScreen(this) }

@@ -19,13 +19,11 @@ import team.godsaeng.cooktionary_android.ui.recipe.RecipeContract.UiEvent.OnClic
 import team.godsaeng.cooktionary_android.ui.recipe.RecipeContract.UiEvent.OnStarted
 import team.godsaeng.cooktionary_android.ui.recipe.RecipeContract.UiState
 import team.godsaeng.domain.model.use_case.recipe.DeleteSavedRecipeUseCase
-import team.godsaeng.domain.model.use_case.recipe.GetLoadedRecipeListUseCase
 import team.godsaeng.domain.model.use_case.recipe.SaveRecipeUseCase
 import javax.inject.Inject
 
 @HiltViewModel
 class RecipeViewModel @Inject constructor(
-    private val getLoadedRecipeListUseCase: GetLoadedRecipeListUseCase,
     private val saveRecipeUseCase: SaveRecipeUseCase,
     private val deleteSavedRecipeUseCase: DeleteSavedRecipeUseCase
 ) : ViewModel(), RecipeContract {
@@ -51,13 +49,10 @@ class RecipeViewModel @Inject constructor(
             it.copy(isLoading = true)
         }
 
-        val recipeList = getLoadedRecipeListUseCase()
-
         _uiState.update {
             it.copy(
                 isLoading = false,
                 startIndex = index,
-                recipeList = RecipeList(recipeList)
             )
         }
     }
