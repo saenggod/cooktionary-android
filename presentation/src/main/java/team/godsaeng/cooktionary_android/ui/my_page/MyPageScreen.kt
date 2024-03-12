@@ -42,6 +42,7 @@ import team.godsaeng.cooktionary_android.ui.alpha
 import team.godsaeng.cooktionary_android.ui.base.use
 import team.godsaeng.cooktionary_android.ui.clickableWithoutRipple
 import team.godsaeng.cooktionary_android.ui.container.ROUTE_MY_INFO
+import team.godsaeng.cooktionary_android.ui.container.ROUTE_SAVED_RECIPE_LIST
 import team.godsaeng.cooktionary_android.ui.my_page.MyPageContract.UiEffect.GoToMyInfo
 import team.godsaeng.cooktionary_android.ui.my_page.MyPageContract.UiEffect.GoToPrivacyTerms
 import team.godsaeng.cooktionary_android.ui.my_page.MyPageContract.UiEffect.GoToSavedRecipeList
@@ -73,7 +74,7 @@ fun MyPageScreen(
         when (collected) {
             is GoToMyInfo -> navController.navigate(ROUTE_MY_INFO)
 
-            is GoToSavedRecipeList -> Unit
+            is GoToSavedRecipeList -> navController.navigate(ROUTE_SAVED_RECIPE_LIST)
 
             is GoToServiceTerms -> context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://www.notion.so/3fb3e86aafd047d38d8fd947c11824b9")))
 

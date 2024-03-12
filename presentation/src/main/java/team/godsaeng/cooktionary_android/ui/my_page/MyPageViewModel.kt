@@ -14,6 +14,7 @@ import kotlinx.coroutines.launch
 import team.godsaeng.cooktionary_android.ui.my_page.MyPageContract.UiEffect
 import team.godsaeng.cooktionary_android.ui.my_page.MyPageContract.UiEffect.GoToMyInfo
 import team.godsaeng.cooktionary_android.ui.my_page.MyPageContract.UiEffect.GoToPrivacyTerms
+import team.godsaeng.cooktionary_android.ui.my_page.MyPageContract.UiEffect.GoToSavedRecipeList
 import team.godsaeng.cooktionary_android.ui.my_page.MyPageContract.UiEffect.GoToServiceTerms
 import team.godsaeng.cooktionary_android.ui.my_page.MyPageContract.UiEvent.OnClickAccount
 import team.godsaeng.cooktionary_android.ui.my_page.MyPageContract.UiEvent.OnClickPrivacyTerms
@@ -47,7 +48,9 @@ class MyPageViewModel @Inject constructor() : ViewModel(), MyPageContract {
     }
 
     private fun onClickSavedRecipeList() {
-
+        viewModelScope.launch {
+            _uiEffect.send(GoToSavedRecipeList)
+        }
     }
 
     private fun onClickServiceTerms() {
